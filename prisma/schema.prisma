@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AssetCategories {
+  IMMATERIAL_IMM
+  MATERIAL_IMM
+  FINANCIAL
+  INVENTORY
+  CREDITS
+  LIQUID_ASSETS
+}
+
+enum LiabilityCategories {
+  MID_LONG_DEBTS
+  SHORT_DEBTS
+}
+
+enum OperationTypes {
+  INVESTMENT
+  PURCHASE
+  SALE
+  LOAN_RECIEVEMENT
+  LOAN_PAYMENT
+}
+
+model Asset {
+  id          String       @id @default(cuid())
+  name        String
+  category    AssetCategories
+  quantity    Int?
+  amount      Int
+  operations  Operation[]
+}
+
+model Liability {
+  id          String       @id @default(cuid())
+  name        String
+  category    LiabilityCategories
+  amount      Int
+  operations  Operation[]
+}
+
+model Operation {
+  id           String          @id @default(cuid())
+  type         OperationTypes
+  assetId      String?
+  liabilityId  String?
+
+  asset        Asset?          @relation(fields: [assetId], references: [id])
+  liability    Liability?      @relation(fields: [liabilityId], references: [id])
+}
