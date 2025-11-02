@@ -36,6 +36,22 @@ enum OperationTypes {
   LOAN_PAYMENT
 }
 
+enum InvoiceType {
+  PURCHASE
+  SALE
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+}
+
+enum PartyType {
+  VENDOR
+  CUSTOMER
+}
+
 model Asset {
   id          String       @id @default(cuid())
   name        String
@@ -43,6 +59,9 @@ model Asset {
   quantity    Int?
   amount      Int
   operations  Operation[]
+
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @default(now())
 }
 
 model Liability {
@@ -51,6 +70,9 @@ model Liability {
   category    LiabilityCategories
   amount      Int
   operations  Operation[]
+
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @default(now())
 }
 
 model Operation {
@@ -61,4 +83,89 @@ model Operation {
 
   asset        Asset?          @relation(fields: [assetId], references: [id])
   liability    Liability?      @relation(fields: [liabilityId], references: [id])
+
+  quantity    Int?
+  amount      Int?
+
+  created_at        DateTime          @default(now())
+  updated_at        DateTime          @default(now())
+}
+
+model Business {
+  id           String          @id @default(cuid())
+  legalName    String          @unique
+  address      String
+  country      String 
+  vatNumber    String
+  bankIban     String 
+
+
+  parties      Party[]
+  invoices     Invoice[]
+}
+
+model Party {
+  id           String          @id @default(cuid())
+  businessId   String
+  business     Business        @relation(fields: [businessId], references: [id])
+
+  type          PartyType
+  legalName     String
+  vatNumber     String?
+  fiscalId      String?
+  email         String
+  phone         String?
+  address       String?
+  country       String?
+  notes         String?
+
+  salesInvoices Invoice[] @relation("CustomerInvoices")
+  purchaseInvoices  Invoice[] @relation("VendorInvoices")
+}
+
+model Invoice {
+  id           String          @id @default(cuid())
+  type         InvoiceType
+  number       String
+  issueDate    DateTime @default(now())
+  dueDate      DateTime?
+  description  String?
+  subtotal     Decimal  @default(0)
+  tax          Decimal  @default(0) 
+  total        Decimal  @default(0)
+  currency     String   @default("EUR")
+  status       InvoiceStatus @default(PENDING)
+
+  businessId  String
+  business    Business  @relation(fields: [businessId], references: [id])
+
+  customerId  String?
+  cusomter    Party? @relation("CustomerInvoices", fields: [customerId], references: [id], onDelete: Cascade)
+
+  vendorId    String?
+  vendor      Party? @relation("VendorInvoices", fields: [vendorId], references: [id], onDelete: Cascade)
+
+  items       InvoiceItem[]
+  payments    Payment[]
+}
+
+model InvoiceItem {
+  id           String          @id @default(cuid())
+  description  String
+  quantity     Int
+  unitPrice    Decimal
+  total        Decimal
+  
+  invoiceId    String
+  invoice       Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  date        DateTime
+  amount      Decimal
+  method      String?
+  note        String?
+  invoiceId   String
+  invoice     Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 }

@@ -1,22 +1,22 @@
 export const operations: MultipleOperaionsProps[] = [
   {
     name: "Sale",
-    defaultCategory: "Inventory",
-    categories: ["Material", "Immaterial", "Inventory"],
+    defaultCategory: "INVENTORY",
+    categories: ["MATERIAL_IMM", "IMMATERIAL_IMM", "INVENTORY"],
     quantity: 0,
     amount: 0,
   },
   {
     name: "Purchase",
-    defaultCategory: "Inventory",
-    categories: ["Material", "Immaterial", "Inventory"],
+    defaultCategory: "INVENTORY",
+    categories: ["MATERIAL_IMM", "IMMATERIAL_IMM", "INVENTORY"],
     quantity: 0,
     amount: 0,
   },
   {
     name: "Loan",
-    defaultCategory: "Financial",
-    categories: ["Financial"],
+    defaultCategory: "FINANCIAL",
+    categories: ["FINANCIAL"],
     quantity: 0,
     amount: 0,
   },
@@ -41,27 +41,25 @@ export interface MultipleOperaionsProps {
 export type allowedOperations = "Sale" | "Purchase" | "Loan";
 
 export type assetsAllowedCategories =
-  | "Immaterial"
-  | "Material"
-  | "Inventory"
-  | "Financial"
-  | "Credits"
-  | "Liquid Assets";
+  | "IMMATERIAL_IMM"
+  | "MATERIAL_IMM"
+  | "INVENTORY"
+  | "FINANCIAL"
+  | "CREDITS"
+  | "LIQUID_ASSETS";
 
-export type liabilitiesAllowedCategories =
-  | "Medium-Long Term Debts"
-  | "Short Term Debts";
+export type liabilitiesAllowedCategories = "MID_LONG_DEBTS" | "SHORT_DEBTS";
 
 export const assetsCategories: assetsAllowedCategories[] = [
-  "Immaterial",
-  "Material",
-  "Inventory",
-  "Financial",
-  "Credits",
-  "Liquid Assets",
+  "IMMATERIAL_IMM",
+  "MATERIAL_IMM",
+  "INVENTORY",
+  "FINANCIAL",
+  "CREDITS",
+  "LIQUID_ASSETS",
 ];
 
 export const liabilityCategories: liabilitiesAllowedCategories[] = [
-  "Medium-Long Term Debts",
-  "Short Term Debts",
+  "MID_LONG_DEBTS",
+  "SHORT_DEBTS",
 ];
