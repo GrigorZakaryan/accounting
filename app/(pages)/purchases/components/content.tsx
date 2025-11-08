@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { formatCurrency } from "@/utils/currency";
 import { Party } from "@/lib/generated/prisma";
-import { Invoice } from "@/types/purchases";
+import { Invoice, Payment } from "@/types/purchases";
 import { format } from "date-fns";
 import { MoreHorizontal, Plus } from "lucide-react";
 import Link from "next/link";
@@ -22,9 +22,11 @@ import { useEffect, useState } from "react";
 export const PurchasesContent = ({
   invoices,
   suppliers,
+  payments,
 }: {
   invoices: Invoice[];
   suppliers: Party[];
+  payments: Payment[];
 }) => {
   const [tab, setTab] = useState<"invoices" | "suppliers" | "payments">(
     "invoices"
@@ -188,6 +190,64 @@ export const PurchasesContent = ({
                       {supplier.address ? supplier.address : "-"}
                     </TableCell>
                     <TableCell>{supplier.vatNumber}</TableCell>
+                    <TableCell className="text-right">
+                      <MoreHorizontal className="w-4 h-4" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </>
+      )}
+      {tab === "payments" && (
+        <>
+          <div className="flex items-center justify-between mt-5">
+            <div>
+              <h2 className="font-medium">Payments</h2>
+              <p className="text-sm text-muted-foreground">
+                List of all of your payments.
+              </p>
+            </div>
+            <div>
+              <Link href={"/purchases/payment"}>
+                <Button>
+                  <Plus /> Create Payment
+                </Button>
+              </Link>
+            </div>
+          </div>
+          <div className="bg-white p-3 rounded-lg mt-5">
+            <Table>
+              <TableCaption>A list of your recent payments.</TableCaption>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">Date</TableHead>
+                  <TableHead>Invoice</TableHead>
+                  <TableHead className="text-left">Descritpion</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead className="text-right"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {payments.map((payment) => (
+                  <TableRow key={payment.id}>
+                    <TableCell className="font-medium">
+                      {format(payment.date, "dd/MM/yyyy")}
+                    </TableCell>
+                    <TableCell>
+                      {
+                        invoices.find(
+                          (invoice) => invoice.id === payment.invoiceId
+                        )?.number
+                      }
+                    </TableCell>
+                    <TableCell className="text-left">
+                      {payment.note ? payment.note : "-"}
+                    </TableCell>
+                    <TableCell className="text-left">
+                      {formatCurrency(payment.amount)}
+                    </TableCell>
                     <TableCell className="text-right">
                       <MoreHorizontal className="w-4 h-4" />
                     </TableCell>

@@ -7,10 +7,11 @@ import { PurchasesContent } from "./components/content";
 export default async function PurchasesPage() {
   const invoices = await db.invoice.findMany({
     where: { type: "PURCHASE" },
-    include: { vendor: true },
+    include: { vendor: true, payments: true },
   });
 
   const suppliers = await db.party.findMany({ where: { type: "VENDOR" } });
+  const payments = await db.payment.findMany({});
 
   const formattedInvoices = invoices.map((invoice) => {
     return {
@@ -18,8 +19,18 @@ export default async function PurchasesPage() {
       tax: Number(invoice.tax),
       subtotal: Number(invoice.subtotal),
       total: Number(invoice.total),
+      payments: payments.map((payment) => ({
+        ...payment,
+        amount: Number(payment.amount),
+      })),
     };
   });
+
+  const formattedPayments = payments.map((payment) => ({
+    ...payment,
+    amount: Number(payment.amount),
+  }));
+
   return (
     <div className="w-full h-full bg-muted">
       <header className="w-full h-16 bg-white border-b">
@@ -37,7 +48,7 @@ export default async function PurchasesPage() {
           </ul>
         </div>
       </header>
-      <div className="p-5">
+      <div className="p-5 overflow-y-auto h-full pb-20">
         <div className="flex items-center justify-between w-full">
           <div>
             <h1 className="text-2xl font-semibold">Purchases</h1>
@@ -47,34 +58,9 @@ export default async function PurchasesPage() {
           </div>
         </div>
         <div className="flex items-center justify-between gap-5 w-full">
-          <div className="border p-5 bg-white rounded-2xl w-full my-5">
+          <div className="border p-5 bg-green-50 border-green-300 text-primary rounded-2xl w-full">
             <div className="flex items-start gap-4">
-              <div className="p-3 rounded-full border">
-                <Clock className="text-primary w-7 h-7" />
-              </div>
-              <div className="flex flex-col gap-1">
-                <h3 className="text-md">
-                  Pending{" "}
-                  <span className="text-muted-foreground text-sm">
-                    {"(To Pay)"}
-                  </span>
-                </h3>
-                <span className="text-3xl font-semibold">
-                  {formatCurrency(
-                    invoices.reduce((acc, curr) => {
-                      return (
-                        acc +
-                        (curr.status === "PENDING" ? Number(curr.total) : 0)
-                      );
-                    }, 0)
-                  )}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="border p-5 bg-white rounded-2xl w-full">
-            <div className="flex items-start gap-4">
-              <div className="p-3 rounded-full border">
+              <div className="p-3 rounded-full border bg-green-200 border-green-200">
                 <Banknote className="text-primary w-7 h-7" />
               </div>
               <div className="flex flex-col gap-1">
@@ -91,11 +77,36 @@ export default async function PurchasesPage() {
               </div>
             </div>
           </div>
-
-          <div className="border p-5 bg-white rounded-2xl w-full">
+          <div className="border p-5 bg-yellow-50 border-yellow-300 text-yellow-900 rounded-2xl w-full my-5">
             <div className="flex items-start gap-4">
-              <div className="p-3 rounded-full border">
-                <ClockArrowDown className="text-primary w-7 h-7" />
+              <div className="p-3 rounded-full border border-yellow-200 bg-yellow-200">
+                <Clock className="text-yellow-700 w-7 h-7" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <h3 className="text-md ">
+                  Pending{" "}
+                  <span className="text-yellow-800/80 text-sm">
+                    {"(To Pay)"}
+                  </span>
+                </h3>
+                <span className="text-3xl font-semibold">
+                  {formatCurrency(
+                    invoices.reduce((acc, curr) => {
+                      return (
+                        acc +
+                        (curr.status === "PENDING" ? Number(curr.total) : 0)
+                      );
+                    }, 0)
+                  )}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="border p-5 bg-red-50 border-red-300 text-red-700 rounded-2xl w-full">
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-full border border-red-200 bg-red-200">
+                <ClockArrowDown className="text-red-700 w-7 h-7" />
               </div>
               <div className="flex flex-col gap-1">
                 <h3 className="">Overdue</h3>
@@ -113,7 +124,11 @@ export default async function PurchasesPage() {
             </div>
           </div>
         </div>
-        <PurchasesContent invoices={formattedInvoices} suppliers={suppliers} />
+        <PurchasesContent
+          invoices={formattedInvoices}
+          suppliers={suppliers}
+          payments={formattedPayments}
+        />
       </div>
     </div>
   );

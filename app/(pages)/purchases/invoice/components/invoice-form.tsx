@@ -37,6 +37,7 @@ import z from "zod";
 import axios from "axios";
 import { redirect } from "next/navigation";
 import { Party } from "@/lib/generated/prisma";
+import { Spinner } from "@/components/ui/spinner";
 
 interface InvoiceItem {
   id: string;
@@ -47,6 +48,7 @@ interface InvoiceItem {
 }
 
 export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
+  const [loading, setLoading] = useState(false);
   const [issueDateOpen, issueDateSetOpen] = useState(false);
   const [dueDateOpen, dueDateSetOpen] = useState(false);
 
@@ -126,6 +128,7 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
   const onSubmit = async (
     invoiceData: z.infer<typeof inputPurchaseInvoiceSchema>
   ) => {
+    setLoading(true);
     const res = await axios.post("/purchases/api", {
       invoice: {
         ...invoiceData,
@@ -136,7 +139,7 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
       items: invoiceItems,
       payments: [],
     });
-
+    setLoading(false);
     redirect("/purchases");
   };
 
@@ -157,7 +160,11 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                     <FormItem className="w-full">
                       <FormLabel>Invoice Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="INV-001" {...field} />
+                        <Input
+                          disabled={loading}
+                          placeholder="INV-001"
+                          {...field}
+                        />
                       </FormControl>
                       <FormDescription>
                         This is the invoice number.
@@ -174,10 +181,11 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                       <FormLabel>Vendor</FormLabel>
                       <FormControl>
                         <Select
+                          disabled={loading}
                           onValueChange={field.onChange}
                           value={field.value}
                         >
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger disabled={loading} className="w-full">
                             <SelectValue placeholder="Choose vendor" />
                           </SelectTrigger>
                           <SelectContent position="popper">
@@ -213,8 +221,13 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                           open={issueDateOpen}
                           onOpenChange={issueDateSetOpen}
                         >
-                          <PopoverTrigger className="w-full" asChild>
+                          <PopoverTrigger
+                            disabled={loading}
+                            className="w-full"
+                            asChild
+                          >
                             <Button
+                              disabled={loading}
                               variant="outline"
                               id="date"
                               className="w-full justify-between font-normal"
@@ -255,8 +268,13 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                           open={dueDateOpen}
                           onOpenChange={dueDateSetOpen}
                         >
-                          <PopoverTrigger className="w-full" asChild>
+                          <PopoverTrigger
+                            disabled={loading}
+                            className="w-full"
+                            asChild
+                          >
                             <Button
+                              disabled={loading}
                               variant="outline"
                               id="date"
                               className="w-full justify-between font-normal"
@@ -297,10 +315,11 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                       <FormLabel>Currency</FormLabel>
                       <FormControl>
                         <Select
+                          disabled={loading}
                           onValueChange={field.onChange}
                           value={field.value}
                         >
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger disabled={loading} className="w-full">
                             <SelectValue placeholder="Choose vendor" />
                           </SelectTrigger>
                           <SelectContent position="popper">
@@ -334,6 +353,7 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                       <FormLabel>Invoice Description</FormLabel>
                       <FormControl>
                         <Textarea
+                          disabled={loading}
                           placeholder="Start typing here..."
                           {...field}
                         />
@@ -353,7 +373,7 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
       <Card>
         <CardHeader className="flex items-center justify-between w-full">
           <CardTitle>Line Items</CardTitle>
-          <Button onClick={() => addItem()}>
+          <Button disabled={loading} onClick={() => addItem()}>
             <Plus /> Add Item
           </Button>
         </CardHeader>
@@ -371,6 +391,7 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                         Description
                       </label>
                       <Input
+                        disabled={loading}
                         onChange={(e) =>
                           updateItem({
                             id: item.id,
@@ -393,6 +414,7 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                         Quantity
                       </label>
                       <Input
+                        disabled={loading}
                         onChange={(e) =>
                           updateItem({
                             id: item.id,
@@ -416,6 +438,7 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                         Unit Price
                       </label>
                       <Input
+                        disabled={loading}
                         onChange={(e) =>
                           updateItem({
                             id: item.id,
@@ -439,6 +462,7 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                         Total
                       </label>
                       <Input
+                        disabled={loading}
                         onChange={() => {}}
                         value={item.total}
                         type="number"
@@ -449,7 +473,7 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                     </div>
                     <div className="flex flex-col items-start gap-2 ml-5">
                       <Button
-                        disabled={invoiceItems.length <= 1}
+                        disabled={loading ? true : invoiceItems.length <= 1}
                         onClick={() => removeItem(item.id)}
                         size={"icon"}
                         variant={"destructive"}
@@ -472,6 +496,7 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
             <div className="flex items-center justify-between w-full">
               <h3 className="font-medium text-sm">Tax Rate</h3>
               <Input
+                disabled={loading}
                 className="max-w-20"
                 min={0}
                 max={99}
@@ -505,15 +530,26 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
       </Card>
       <div className="w-full flex items-center justify-end gap-2">
         <Button
+          disabled={loading}
           onClick={() => redirect("/purchases")}
           size={"lg"}
           variant={"outline"}
         >
           Cancel
         </Button>
-        <Button size={"lg"} onClick={form.handleSubmit(onSubmit)}>
-          <Save />
-          Save
+        <Button
+          disabled={loading}
+          size={"lg"}
+          onClick={form.handleSubmit(onSubmit)}
+        >
+          {loading ? (
+            <Spinner />
+          ) : (
+            <>
+              <Save />
+              Save
+            </>
+          )}
         </Button>
       </div>
     </div>
