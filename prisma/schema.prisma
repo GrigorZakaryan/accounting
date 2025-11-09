@@ -138,6 +138,7 @@ model JournalEntry {
   date        DateTime @default(now())
   description String?
   sourceType  String?
+  
   invoiceId   String?
   paymentId   String?
 

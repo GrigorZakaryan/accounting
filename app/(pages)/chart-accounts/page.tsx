@@ -1,35 +1,17 @@
 import { formatCurrency } from "@/utils/currency";
 import { db } from "@/lib/db";
-import { Banknote, ChevronRight, Clock, ClockArrowDown } from "lucide-react";
-import Link from "next/link";
+import {
+  BanknoteArrowDown,
+  BanknoteArrowUp,
+  ChevronRight,
+  FileDown,
+  HandCoins,
+  Scale,
+} from "lucide-react";
+import { CoAContent } from "./components/content";
 
-export default async function PurchasesPage() {
-  const invoices = await db.invoice.findMany({
-    where: { type: "PURCHASE" },
-    include: { vendor: true, payments: true },
-    orderBy: { issueDate: "asc" },
-  });
-
-  const suppliers = await db.party.findMany({ where: { type: "VENDOR" } });
-  const payments = invoices.flatMap((invoice) => invoice.payments);
-
-  const formattedInvoices = invoices.map((invoice) => {
-    return {
-      ...invoice,
-      tax: Number(invoice.tax),
-      subtotal: Number(invoice.subtotal),
-      total: Number(invoice.total),
-      payments: payments.map((payment) => ({
-        ...payment,
-        amount: Number(payment.amount),
-      })),
-    };
-  });
-
-  const formattedPayments = payments.map((payment) => ({
-    ...payment,
-    amount: Number(payment.amount),
-  }));
+export default async function ChartAccountsPage() {
+  const CoAs = await db.chartAccount.findMany({});
 
   return (
     <div className="w-full h-full bg-muted">
@@ -56,6 +38,76 @@ export default async function PurchasesPage() {
             </p>
           </div>
         </div>
+
+        <div className="grid grid-cols-5 items-center gap-3 w-full">
+          <div className="border p-5 bg-cyan-50 border-cyan-300 text-primary rounded-2xl w-full">
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-full border bg-cyan-200 border-cyan-200">
+                <HandCoins className="text-primary w-7 h-7" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <h3 className="">Assets</h3>
+                <span className="text-3xl font-semibold">
+                  {CoAs.filter((CoA) => CoA.type === "ASSET").length}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="border p-5 bg-amber-50 border-amber-300 text-amber-900 rounded-2xl w-full my-5">
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-full border border-amber-200 bg-amber-200">
+                <FileDown className="text-amber-700 w-7 h-7" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <h3 className="text-md ">Liabilites</h3>
+                <span className="text-3xl font-semibold">
+                  {CoAs.filter((CoA) => CoA.type === "LIABILITY").length}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="border p-5 bg-violet-50 border-violet-300 text-violet-700 rounded-2xl w-full">
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-full border border-violet-200 bg-violet-200">
+                <Scale className="text-violet-700 w-7 h-7" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <h3 className="">Equity</h3>
+                <span className="text-3xl font-semibold">
+                  {CoAs.filter((CoA) => CoA.type === "EQUITY").length}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="border p-5 bg-red-50 border-red-300 text-red-700 rounded-2xl w-full">
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-full border bg-red-200 border-red-200">
+                <BanknoteArrowDown className="text-red-700 w-7 h-7" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <h3 className="">Expense</h3>
+                <span className="text-3xl font-semibold">
+                  {CoAs.filter((CoA) => CoA.type === "EXPENSE").length}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="border p-5 bg-green-50 border-green-300 text-green-900 rounded-2xl w-full my-5">
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-full border border-green-200 bg-green-200">
+                <BanknoteArrowUp className="text-green-700 w-7 h-7" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <h3 className="text-md ">Income</h3>
+                <span className="text-3xl font-semibold">
+                  {CoAs.filter((CoA) => CoA.type === "INCOME").length}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <CoAContent CoAs={CoAs} />
       </div>
     </div>
   );
