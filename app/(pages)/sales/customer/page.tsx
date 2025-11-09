@@ -1,10 +1,8 @@
-import { ChevronRight, FileText } from "lucide-react";
+import { ChevronRight, UserRoundPlus } from "lucide-react";
 import Link from "next/link";
-import { InvoiceForm } from "./components/invoice-form";
-import { db } from "@/lib/db";
+import { CustomerForm } from "./components/customer-form";
 
-export default async function SaleInvoicePage() {
-  const customers = await db.party.findMany({ where: { type: "CUSTOMER" } });
+export default function Customer() {
   return (
     <div className="w-full h-full bg-muted overflow-y-scroll">
       <header className="w-full h-16 bg-white border-b fixed">
@@ -16,14 +14,14 @@ export default async function SaleInvoicePage() {
               </li>
             </Link>
             <ChevronRight className="w-4 h-4" />
-            <Link href={"/sales"}>
+            <Link href={"/purchases"}>
               <li className="text-sm font-medium opacity-80 cursor-pointer hover:opacity-100">
                 Sales
               </li>
             </Link>
             <ChevronRight className="w-4 h-4" />
             <li className="text-sm font-medium cursor-pointer hover:opacity-100">
-              Create Invoice
+              Create Customer
             </li>
           </ul>
         </div>
@@ -32,19 +30,19 @@ export default async function SaleInvoicePage() {
         <div className="flex flex-col items-start space-y-1">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-green-100 rounded-lg">
-              <FileText className="text-primary w-6 h-6" />
+              <UserRoundPlus className="text-primary w-6 h-6" />
             </div>
             <h1 className="text-3xl font-semibold text-primary">
-              Create Invoice
+              Add Customer
             </h1>
           </div>
           <p className="text-sm text-muted-foreground">
-            Fill in the details below to generate a new invoice.
+            Fill in the details below to create a new customer.
           </p>
         </div>
       </div>
       <div className="px-5 pb-10">
-        <InvoiceForm customers={customers} />
+        <CustomerForm />
       </div>
     </div>
   );

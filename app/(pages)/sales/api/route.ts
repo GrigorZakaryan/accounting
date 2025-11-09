@@ -1,9 +1,6 @@
 import { db } from "@/lib/db";
 import { Invoice, InvoiceItem, Party, Payment } from "@/lib/generated/prisma";
-import {
-  fullPurchaseInvoiceSchema,
-  fullSaleInvoiceSchema,
-} from "@/schemas/invoice-schema";
+import { fullSaleInvoiceSchema } from "@/schemas/invoice-schema";
 import { NextRequest, NextResponse } from "next/server";
 
 export const POST = async (req: NextRequest) => {

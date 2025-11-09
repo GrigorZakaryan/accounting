@@ -35,6 +35,8 @@ import { useForm } from "react-hook-form";
 import z from "zod";
 
 import axios from "axios";
+import { Party } from "@/lib/generated/prisma";
+import Link from "next/link";
 
 interface InvoiceItem {
   id: string;
@@ -44,18 +46,12 @@ interface InvoiceItem {
   total: number;
 }
 
-export const InvoiceForm = () => {
+export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
   const [issueDateOpen, issueDateSetOpen] = useState(false);
   const [dueDateOpen, dueDateSetOpen] = useState(false);
 
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([
-    {
-      id: useId(),
-      description: "",
-      quantity: 1,
-      unitPrice: 0,
-      total: 0,
-    },
+    { id: useId(), description: "", quantity: 1, unitPrice: 0, total: 0 },
   ]);
 
   const form = useForm<z.infer<typeof inputSaleInvoiceSchema>>({
@@ -182,15 +178,31 @@ export const InvoiceForm = () => {
                           value={field.value}
                         >
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Choose vendor" />
+                            <SelectValue placeholder="Choose customer" />
                           </SelectTrigger>
                           <SelectContent position="popper">
-                            <SelectItem
-                              className="flex items-center justify-center cursor-pointer"
-                              value="54321"
-                            >
-                              Petrossian srl
-                            </SelectItem>
+                            {(customers.length === 0 || !customers) && (
+                              <Link
+                                className="cursor-pointer"
+                                href={"/sales/customer"}
+                              >
+                                <Button
+                                  variant={"outline"}
+                                  className="w-full cursor-pointer"
+                                >
+                                  <Plus /> Create Customer
+                                </Button>
+                              </Link>
+                            )}
+                            {customers.map((customer) => (
+                              <SelectItem
+                                key={customer.id}
+                                className="flex items-center justify-center cursor-pointer"
+                                value={customer.id}
+                              >
+                                {customer.legalName}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </FormControl>

@@ -14,28 +14,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum AssetCategories {
-  IMMATERIAL_IMM
-  MATERIAL_IMM
-  FINANCIAL
-  INVENTORY
-  CREDITS
-  LIQUID_ASSETS
-}
-
-enum LiabilityCategories {
-  MID_LONG_DEBTS
-  SHORT_DEBTS
-}
-
-enum OperationTypes {
-  INVESTMENT
-  PURCHASE
-  SALE
-  LOAN_RECIEVEMENT
-  LOAN_PAYMENT
-}
-
 enum InvoiceType {
   PURCHASE
   SALE
@@ -52,43 +30,12 @@ enum PartyType {
   CUSTOMER
 }
 
-model Asset {
-  id          String       @id @default(cuid())
-  name        String
-  category    AssetCategories
-  quantity    Int?
-  amount      Int
-  operations  Operation[]
-
-  created_at        DateTime          @default(now())
-  updated_at        DateTime          @default(now())
-}
-
-model Liability {
-  id          String       @id @default(cuid())
-  name        String
-  category    LiabilityCategories
-  amount      Int
-  operations  Operation[]
-
-  created_at        DateTime          @default(now())
-  updated_at        DateTime          @default(now())
-}
-
-model Operation {
-  id           String          @id @default(cuid())
-  type         OperationTypes
-  assetId      String?
-  liabilityId  String?
-
-  asset        Asset?          @relation(fields: [assetId], references: [id])
-  liability    Liability?      @relation(fields: [liabilityId], references: [id])
-
-  quantity    Int?
-  amount      Int?
-
-  created_at        DateTime          @default(now())
-  updated_at        DateTime          @default(now())
+enum ChartAccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  INCOME
+  EXPENSE
 }
 
 model Business {
@@ -140,13 +87,15 @@ model Invoice {
   business    Business  @relation(fields: [businessId], references: [id])
 
   customerId  String?
-  cusomter    Party? @relation("CustomerInvoices", fields: [customerId], references: [id], onDelete: Cascade)
+  customer    Party? @relation("CustomerInvoices", fields: [customerId], references: [id], onDelete: Cascade)
 
   vendorId    String?
   vendor      Party? @relation("VendorInvoices", fields: [vendorId], references: [id], onDelete: Cascade)
 
   items       InvoiceItem[]
   payments    Payment[]
+
+  journalEntries  JournalEntry[]
 }
 
 model InvoiceItem {
@@ -166,6 +115,49 @@ model Payment {
   amount      Decimal
   method      String?
   note        String?
+
   invoiceId   String
   invoice     Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  journalEntries  JournalEntry[]
+}
+
+model ChartAccount {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String   @unique
+  type        ChartAccountType
+  isSystem    Boolean
+  createdAt   DateTime @default(now())
+
+  journalLines  JounralLine[]
+}
+
+model JournalEntry {
+  id          String   @id @default(cuid())
+  date        DateTime @default(now())
+  description String?
+  sourceType  String?
+  invoiceId   String?
+  paymentId   String?
+
+  invoice     Invoice? @relation(fields: [invoiceId], references: [id])
+  payment     Payment? @relation(fields: [paymentId], references: [id])
+
+  journalLines  JounralLine[]
+}
+
+model JounralLine {
+  id              String   @id @default(cuid())
+
+  jounralEntryId  String
+  journalEntry   JournalEntry @relation(fields: [jounralEntryId], references: [id])
+
+  chartAccountId  String
+  charAccount     ChartAccount @relation(fields: [chartAccountId], references: [id])
+
+  description     String
+  credit          Int?
+  debit           Int?
+  createdAt       DateTime  @default(now())
 }

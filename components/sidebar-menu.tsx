@@ -55,9 +55,9 @@ export const SidebarMenu = () => {
             onClick={() => {
               redirect(item.link);
             }}
-            className={`flex items-center w-full gap-3 px-3 py-2 text-sm text-primary font-medium ${
-              pathname === item.link && "bg-muted"
-            } hover:bg-muted cursor-pointer rounded-md duration-200`}
+            className={`flex items-center w-full gap-3 px-3 py-2 text-sm text-primary border border-green-700/0 font-medium ${
+              pathname === item.link && "bg-green-50 border-green-700/100"
+            } hover:bg-green-50 cursor-pointer rounded-md duration-200`}
             key={item.link}
           >
             {item.icon} <span>{item.name}</span>

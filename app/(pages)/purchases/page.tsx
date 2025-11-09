@@ -8,10 +8,11 @@ export default async function PurchasesPage() {
   const invoices = await db.invoice.findMany({
     where: { type: "PURCHASE" },
     include: { vendor: true, payments: true },
+    orderBy: { issueDate: "asc" },
   });
 
   const suppliers = await db.party.findMany({ where: { type: "VENDOR" } });
-  const payments = await db.payment.findMany({});
+  const payments = invoices.flatMap((invoice) => invoice.payments);
 
   const formattedInvoices = invoices.map((invoice) => {
     return {
