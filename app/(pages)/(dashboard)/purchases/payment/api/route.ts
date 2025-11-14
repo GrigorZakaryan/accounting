@@ -41,8 +41,14 @@ export const POST = async (req: NextRequest) => {
       0
     );
 
-    // If it's already paid, no more payments allowed
+    if (amount > Math.abs(Number(existingInvoice.total) - totalPaid)) {
+      return NextResponse.json({
+        message: "Payment amount surpasses the payable amount!",
+        status: 400,
+      });
+    }
     if (Math.abs(totalPaid - Number(existingInvoice.total)) < 0.01) {
+      // If it's already paid, no more payments allowed
       if (existingInvoice.status !== "PAID") {
         await db.invoice.update({
           where: { id: existingInvoice.id },

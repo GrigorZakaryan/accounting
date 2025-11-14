@@ -19,6 +19,11 @@ enum InvoiceType {
   SALE
 }
 
+enum JournalLineType {
+  CREDIT
+  DEBIT
+}
+
 enum InvoiceStatus {
   PENDING
   PAID
@@ -158,7 +163,7 @@ model JounralLine {
   charAccount     ChartAccount @relation(fields: [chartAccountId], references: [id])
 
   description     String
-  credit          Int?
-  debit           Int?
+  amount          Int
+  type            JournalLineType
   createdAt       DateTime  @default(now())
 }

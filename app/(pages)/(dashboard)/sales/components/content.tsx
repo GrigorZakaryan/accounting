@@ -152,7 +152,7 @@ export const SalesContent = ({
               </p>
             </div>
             <div>
-              <Link href={"/sales/supplier"}>
+              <Link href={"/sales/customer"}>
                 <Button>
                   <Plus /> Create Customer
                 </Button>

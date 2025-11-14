@@ -1,8 +1,10 @@
-import { ChevronRight, UserRoundPlus } from "lucide-react";
+import { ChartArea, ChevronRight, FileText, Notebook } from "lucide-react";
 import Link from "next/link";
-import { CustomerForm } from "./components/customer-form";
+import { JournalEntryForm } from "./components/form";
+import { db } from "@/lib/db";
 
-export default function Customer() {
+export default async function JournalEntriesCreate() {
+  const CoAs = await db.chartAccount.findMany({});
   return (
     <div className="w-full h-full bg-muted overflow-y-scroll">
       <header className="w-full h-16 bg-white border-b fixed">
@@ -14,14 +16,14 @@ export default function Customer() {
               </li>
             </Link>
             <ChevronRight className="w-4 h-4" />
-            <Link href={"/purchases"}>
+            <Link href={"/journal-entries"}>
               <li className="text-sm font-medium opacity-80 cursor-pointer hover:opacity-100">
-                Sales
+                Journal Entries
               </li>
             </Link>
             <ChevronRight className="w-4 h-4" />
             <li className="text-sm font-medium cursor-pointer hover:opacity-100">
-              Create Customer
+              Create Entry
             </li>
           </ul>
         </div>
@@ -30,19 +32,19 @@ export default function Customer() {
         <div className="flex flex-col items-start space-y-1">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-green-100 rounded-lg">
-              <UserRoundPlus className="text-primary w-6 h-6" />
+              <Notebook className="text-primary w-6 h-6" />
             </div>
             <h1 className="text-3xl font-semibold text-primary">
-              Add Customer
+              Create Entry
             </h1>
           </div>
           <p className="text-sm text-muted-foreground">
-            Fill in the details below to create a new customer.
+            Fill in the details below to create new entry.
           </p>
         </div>
       </div>
       <div className="px-5 pb-10">
-        <CustomerForm />
+        <JournalEntryForm CoAs={CoAs} />
       </div>
     </div>
   );

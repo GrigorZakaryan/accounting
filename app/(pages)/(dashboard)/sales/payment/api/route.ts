@@ -63,6 +63,13 @@ export const POST = async (req: NextRequest) => {
     // Update total payments directly
     const updatedTotal = totalPaid + Number(amount);
 
+    if (amount > Math.abs(Number(existingInvoice.total) - totalPaid)) {
+      return NextResponse.json({
+        message: "Payment amount surpasses the payable amount!",
+        status: 400,
+      });
+    }
+
     // If invoice is now fully paid, mark it as PAID
     if (Math.abs(updatedTotal - Number(existingInvoice.total)) < 0.01) {
       await db.invoice.update({
