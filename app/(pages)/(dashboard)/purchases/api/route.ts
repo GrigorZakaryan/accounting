@@ -41,8 +41,49 @@ export const POST = async (req: NextRequest) => {
       ...invoice,
       type: "PURCHASE",
       businessId: "123",
-      items: { createMany: { data: items } },
+      items: {
+        createMany: {
+          data: items.map((item) => ({
+            description: item.description,
+            total: item.total,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+          })),
+        },
+      },
       payments: { createMany: { data: payments } },
+    },
+  });
+
+  await db.journalEntry.create({
+    data: {
+      date: new Date(invoice.issueDate),
+      description: `Purchase Invoice: ${invoice.number}`,
+      invoiceId: invoice.id,
+      journalLines: {
+        createMany: {
+          data: [
+            {
+              chartAccountId: "cmhs7s5ck0009i71lpauowi5u",
+              type: "CREDIT",
+              amount: Number(invoice.total),
+              description: "",
+            },
+            {
+              chartAccountId: "cmhzerkt4000di7ow8ot17t03",
+              type: "DEBIT",
+              amount: Number(invoice.subtotal) * (Number(invoice.tax) / 100),
+              description: "",
+            },
+            {
+              chartAccountId: "cmhs7pd1d0004i71l5ydszb6x",
+              type: "DEBIT",
+              amount: Number(invoice.subtotal),
+              description: "",
+            },
+          ],
+        },
+      },
     },
   });
 

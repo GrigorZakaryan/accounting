@@ -46,5 +46,37 @@ export const POST = async (req: NextRequest) => {
     },
   });
 
+  await db.journalEntry.create({
+    data: {
+      date: new Date(invoice.issueDate),
+      description: `Sale Invoice: ${invoice.number}`,
+      invoiceId: invoice.id,
+      journalLines: {
+        createMany: {
+          data: [
+            {
+              chartAccountId: "cmhs7s5ck0009i71lpauowi5u",
+              type: "DEBIT",
+              amount: Number(invoice.total),
+              description: "",
+            },
+            {
+              chartAccountId: "cmhzerkt4000di7ow8ot17t03",
+              type: "CREDIT",
+              amount: Number(invoice.subtotal) * (Number(invoice.tax) / 100),
+              description: "",
+            },
+            {
+              chartAccountId: "cmhs7pd1d0004i71l5ydszb6x",
+              type: "CREDIT",
+              amount: Number(invoice.subtotal),
+              description: "",
+            },
+          ],
+        },
+      },
+    },
+  });
+
   return new NextResponse("Invoice created succesfully!");
 };

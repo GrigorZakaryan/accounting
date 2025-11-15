@@ -76,11 +76,63 @@ export const POST = async (req: NextRequest) => {
         data: { status: "PAID" },
       });
 
+      await db.journalEntry.create({
+        data: {
+          date: new Date(payment.date),
+          description: `Purchase Payement for ${existingInvoice.number}`,
+          paymentId: payment.id,
+          journalLines: {
+            createMany: {
+              data: [
+                {
+                  chartAccountId: "cmhs7s5ck0009i71lpauowi5u",
+                  type: "DEBIT",
+                  amount: Number(payment.amount),
+                  description: "",
+                },
+                {
+                  chartAccountId: "cmhs7o2lv0002i71lewufcb3c",
+                  type: "CREDIT",
+                  amount: Number(payment.amount),
+                  description: "",
+                },
+              ],
+            },
+          },
+        },
+      });
+
       return NextResponse.json({
         message: "Payment recorded and invoice marked as fully paid!",
         payment,
       });
     }
+
+    await db.journalEntry.create({
+      data: {
+        date: new Date(payment.date),
+        description: `Purchase Payement for ${existingInvoice.number}`,
+        paymentId: payment.id,
+        journalLines: {
+          createMany: {
+            data: [
+              {
+                chartAccountId: "cmhs7s5ck0009i71lpauowi5u",
+                type: "DEBIT",
+                amount: Number(payment.amount),
+                description: "",
+              },
+              {
+                chartAccountId: "cmhs7o2lv0002i71lewufcb3c",
+                type: "CREDIT",
+                amount: Number(payment.amount),
+                description: "",
+              },
+            ],
+          },
+        },
+      },
+    });
 
     // Otherwise just confirm payment
     return NextResponse.json({

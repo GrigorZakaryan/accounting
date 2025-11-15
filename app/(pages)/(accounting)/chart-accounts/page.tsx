@@ -11,7 +11,7 @@ import {
 import { CoAContent } from "./components/content";
 
 export default async function ChartAccountsPage() {
-  const CoAs = await db.chartAccount.findMany({});
+  const CoAs = await db.chartAccount.findMany({ orderBy: { code: "asc" } });
 
   return (
     <div className="w-full h-full bg-muted">

@@ -160,7 +160,7 @@ model JounralLine {
   journalEntry   JournalEntry @relation(fields: [jounralEntryId], references: [id])
 
   chartAccountId  String
-  charAccount     ChartAccount @relation(fields: [chartAccountId], references: [id])
+  chartAccount     ChartAccount @relation(fields: [chartAccountId], references: [id])
 
   description     String
   amount          Int

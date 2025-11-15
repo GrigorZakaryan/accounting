@@ -1,6 +1,3 @@
-import { formatCurrency } from "@/utils/currency";
-import { HandCoins, Landmark, Scale } from "lucide-react";
-
 export default async function Page() {
   return (
     <main className="bg-muted w-full h-full">

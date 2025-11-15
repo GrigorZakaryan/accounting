@@ -1,6 +1,16 @@
 import { ChevronRight } from "lucide-react";
+import { JournalEntryContent } from "./components/content";
+import { db } from "@/lib/db";
 
 export default async function ChartAccountsPage() {
+  const journalEntries = await db.journalEntry.findMany({
+    include: {
+      journalLines: {
+        include: { chartAccount: true },
+        orderBy: { chartAccount: { code: "asc" } },
+      },
+    },
+  });
   return (
     <div className="w-full h-full bg-muted">
       <header className="w-full h-16 bg-white border-b">
@@ -26,6 +36,7 @@ export default async function ChartAccountsPage() {
             </p>
           </div>
         </div>
+        <JournalEntryContent journalEntries={journalEntries} />
       </div>
     </div>
   );
