@@ -55,13 +55,13 @@ export const POST = async (req: NextRequest) => {
         createMany: {
           data: [
             {
-              chartAccountId: "cmhs7s5ck0009i71lpauowi5u",
+              chartAccountId: "cmhs7p4ov0003i71l69fnv226",
               type: "DEBIT",
               amount: Number(invoice.total),
               description: "",
             },
             {
-              chartAccountId: "cmhzerkt4000di7ow8ot17t03",
+              chartAccountId: "cmhs7v4th000ci71lje7qgt0b",
               type: "CREDIT",
               amount: Number(invoice.subtotal) * (Number(invoice.tax) / 100),
               description: "",
