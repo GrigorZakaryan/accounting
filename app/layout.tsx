@@ -3,12 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/sidebar";
-import localFont from "next/font/local";
 import { Toaster } from "@/components/ui/sonner";
-
-const myFont = localFont({
-  src: "./ZalandoSansSemiExpanded-VariableFont_wght.ttf",
-});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

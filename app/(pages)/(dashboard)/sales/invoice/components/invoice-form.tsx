@@ -29,14 +29,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/utils/currency";
 import { inputSaleInvoiceSchema } from "@/schemas/invoice-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDownIcon, Plus, Trash } from "lucide-react";
+import { ChevronDownIcon, Plus, Save, Trash } from "lucide-react";
 import { useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
 import axios from "axios";
+import { redirect } from "next/navigation";
 import { Party } from "@/lib/generated/prisma";
 import Link from "next/link";
+import { Spinner } from "@/components/ui/spinner";
 
 interface InvoiceItem {
   id: string;
@@ -47,6 +49,7 @@ interface InvoiceItem {
 }
 
 export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
+  const [loading, setLoading] = useState(false);
   const [issueDateOpen, issueDateSetOpen] = useState(false);
   const [dueDateOpen, dueDateSetOpen] = useState(false);
 
@@ -126,18 +129,23 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
   const onSubmit = async (
     invoiceData: z.infer<typeof inputSaleInvoiceSchema>
   ) => {
-    const res = await axios.post("/sales/api", {
-      invoice: {
-        ...invoiceData,
-        businessId: "123",
-        subtotal: calculateSubtotal(),
-        total: calculateTotal(),
-      },
-      items: invoiceItems,
-      payments: [],
-    });
+    try {
+      setLoading(true);
+      await axios.post("/sales/api", {
+        invoice: {
+          ...invoiceData,
+          businessId: "123",
+          subtotal: calculateSubtotal(),
+          total: calculateTotal(),
+        },
+        items: invoiceItems,
+        payments: [],
+      });
+    } finally {
+      setLoading(false);
+    }
 
-    console.log(res);
+    redirect("/sales");
   };
 
   return (
@@ -157,7 +165,11 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
                     <FormItem className="w-full">
                       <FormLabel>Invoice Number</FormLabel>
                       <FormControl>
-                        <Input placeholder="INV-001" {...field} />
+                        <Input
+                          disabled={loading}
+                          placeholder="INV-001"
+                          {...field}
+                        />
                       </FormControl>
                       <FormDescription>
                         This is the invoice number.
@@ -174,10 +186,11 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
                       <FormLabel>Customer</FormLabel>
                       <FormControl>
                         <Select
+                          disabled={loading}
                           onValueChange={field.onChange}
                           value={field.value}
                         >
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger disabled={loading} className="w-full">
                             <SelectValue placeholder="Choose customer" />
                           </SelectTrigger>
                           <SelectContent position="popper">
@@ -226,8 +239,13 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
                           open={issueDateOpen}
                           onOpenChange={issueDateSetOpen}
                         >
-                          <PopoverTrigger className="w-full" asChild>
+                          <PopoverTrigger
+                            disabled={loading}
+                            className="w-full"
+                            asChild
+                          >
                             <Button
+                              disabled={loading}
                               variant="outline"
                               id="date"
                               className="w-full justify-between font-normal"
@@ -268,8 +286,13 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
                           open={dueDateOpen}
                           onOpenChange={dueDateSetOpen}
                         >
-                          <PopoverTrigger className="w-full" asChild>
+                          <PopoverTrigger
+                            disabled={loading}
+                            className="w-full"
+                            asChild
+                          >
                             <Button
+                              disabled={loading}
                               variant="outline"
                               id="date"
                               className="w-full justify-between font-normal"
@@ -310,10 +333,11 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
                       <FormLabel>Currency</FormLabel>
                       <FormControl>
                         <Select
+                          disabled={loading}
                           onValueChange={field.onChange}
                           value={field.value}
                         >
-                          <SelectTrigger className="w-full">
+                          <SelectTrigger disabled={loading} className="w-full">
                             <SelectValue placeholder="Choose vendor" />
                           </SelectTrigger>
                           <SelectContent position="popper">
@@ -347,6 +371,7 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
                       <FormLabel>Invoice Description</FormLabel>
                       <FormControl>
                         <Textarea
+                          disabled={loading}
                           placeholder="Start typing here..."
                           {...field}
                         />
@@ -366,7 +391,7 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
       <Card>
         <CardHeader className="flex items-center justify-between w-full">
           <CardTitle>Line Items</CardTitle>
-          <Button onClick={() => addItem()}>
+          <Button disabled={loading} onClick={() => addItem()}>
             <Plus /> Add Item
           </Button>
         </CardHeader>
@@ -384,6 +409,7 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
                         Description
                       </label>
                       <Input
+                        disabled={loading}
                         onChange={(e) =>
                           updateItem({
                             id: item.id,
@@ -406,6 +432,7 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
                         Quantity
                       </label>
                       <Input
+                        disabled={loading}
                         onChange={(e) =>
                           updateItem({
                             id: item.id,
@@ -429,6 +456,7 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
                         Unit Price
                       </label>
                       <Input
+                        disabled={loading}
                         onChange={(e) =>
                           updateItem({
                             id: item.id,
@@ -452,6 +480,7 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
                         Total
                       </label>
                       <Input
+                        disabled={loading}
                         onChange={() => {}}
                         value={item.total}
                         type="number"
@@ -462,7 +491,7 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
                     </div>
                     <div className="flex flex-col items-start gap-2 ml-5">
                       <Button
-                        disabled={invoiceItems.length <= 1}
+                        disabled={loading ? true : invoiceItems.length <= 1}
                         onClick={() => removeItem(item.id)}
                         size={"icon"}
                         variant={"destructive"}
@@ -485,6 +514,7 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
             <div className="flex items-center justify-between w-full">
               <h3 className="font-medium text-sm">Tax Rate</h3>
               <Input
+                disabled={loading}
                 className="max-w-20"
                 min={0}
                 max={99}
@@ -516,7 +546,25 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
           </div>
         </CardContent>
       </Card>
-      <Button onClick={form.handleSubmit(onSubmit)}>Submit</Button>
+      <div className="flex items-center justify-end w-full gap-3">
+        <Button disabled={loading} size={"lg"} variant={"outline"}>
+          Cancel
+        </Button>
+        <Button
+          disabled={loading}
+          size={"lg"}
+          onClick={form.handleSubmit(onSubmit)}
+        >
+          {loading ? (
+            <Spinner />
+          ) : (
+            <>
+              <Save />
+              Submit
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   );
 };
