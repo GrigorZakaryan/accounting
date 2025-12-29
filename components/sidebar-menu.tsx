@@ -14,7 +14,7 @@ const menu_platform = [
   {
     name: "Overview",
     icon: <LayoutDashboard className="w-5 h-5 text-primary" />,
-    link: "/",
+    link: "/overview",
   },
   {
     name: "Purchases",
