@@ -2,8 +2,27 @@ import { QuickActions } from "@/components/overview/quick-actions";
 import { RecentTransactions } from "@/components/overview/recent-transactions";
 import { db } from "@/lib/db";
 import { formatCurrency } from "@/utils/currency";
-import { ChevronRight, Landmark, ShoppingCart, Tag } from "lucide-react";
+import {
+  ChevronRight,
+  Landmark,
+  Menu,
+  SheetIcon,
+  ShoppingCart,
+  Tag,
+} from "lucide-react";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { SidebarMenu } from "@/components/sidebar-menu";
+import { Header } from "../../components/header";
 
 export default async function Page() {
   const journalEntries = await db.journalEntry.findMany({
@@ -34,21 +53,7 @@ export default async function Page() {
 
   return (
     <div className="bg-muted w-full h-full">
-      <header className="w-full h-16 bg-white border-b">
-        <div className="flex flex-col justify-center w-full h-full px-5 text-primary">
-          <ul className="flex items-center gap-3">
-            <Link href={"/"}>
-              <li className="text-sm font-medium opacity-80 cursor-pointer hover:opacity-100">
-                Dashboard
-              </li>
-            </Link>
-            <ChevronRight className="w-4 h-4" />
-            <li className="text-sm font-medium cursor-pointer hover:opacity-100">
-              Overview
-            </li>
-          </ul>
-        </div>
-      </header>
+      <Header links={[{ label: "Overview" }]} />
       <main className="p-5 overflow-y-auto h-full pb-20">
         <div className="flex items-center justify-between w-full">
           <div>

@@ -9,26 +9,19 @@ import {
   Scale,
 } from "lucide-react";
 import { CoAContent } from "./components/content";
+import { Header } from "../../components/header";
 
 export default async function ChartAccountsPage() {
   const CoAs = await db.chartAccount.findMany({ orderBy: { code: "asc" } });
 
   return (
     <div className="w-full h-full bg-muted">
-      <header className="w-full h-16 bg-white border-b">
-        <div className="flex flex-col justify-center w-full h-full px-5 text-primary">
-          <ul className="flex items-center gap-3">
-            <li className="text-sm font-medium hover:opacity-100">
-              Accountability
-            </li>
-
-            <ChevronRight className="w-4 h-4" />
-            <li className="text-sm font-medium hover:opacity-100">
-              Chart of Accounts
-            </li>
-          </ul>
-        </div>
-      </header>
+      <Header
+        links={[
+          { label: "Accountibility", link: "/overview" },
+          { label: "CoAs" },
+        ]}
+      />
       <div className="p-5 overflow-y-auto h-full pb-20">
         <div className="flex items-center justify-between w-full">
           <div>
@@ -39,7 +32,7 @@ export default async function ChartAccountsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-5 items-center gap-3 w-full">
+        <div className="grid grid-cols-2 lg:grid-cols-5 items-center gap-3 w-full max-w-full overflow-x-auto">
           <div className="border p-5 bg-cyan-50 border-cyan-300 text-primary rounded-2xl w-full">
             <div className="flex items-start gap-4">
               <div className="p-3 rounded-full border bg-cyan-200 border-cyan-200">

@@ -1,8 +1,26 @@
 import { formatCurrency } from "@/utils/currency";
 import { db } from "@/lib/db";
-import { Banknote, ChevronRight, Clock, ClockArrowDown } from "lucide-react";
+import {
+  Banknote,
+  ChevronRight,
+  Clock,
+  ClockArrowDown,
+  Menu,
+} from "lucide-react";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import Link from "next/link";
 import { PurchasesContent } from "./components/content";
+import { Button } from "@/components/ui/button";
+import { SidebarMenu } from "@/components/sidebar-menu";
+import { Header } from "../../components/header";
 
 export default async function PurchasesPage() {
   const invoices = await db.invoice.findMany({
@@ -34,21 +52,12 @@ export default async function PurchasesPage() {
 
   return (
     <div className="w-full h-full bg-muted">
-      <header className="w-full h-16 bg-white border-b">
-        <div className="flex flex-col justify-center w-full h-full px-5 text-primary">
-          <ul className="flex items-center gap-3">
-            <Link href={"/"}>
-              <li className="text-sm font-medium opacity-80 cursor-pointer hover:opacity-100">
-                Dashboard
-              </li>
-            </Link>
-            <ChevronRight className="w-4 h-4" />
-            <li className="text-sm font-medium cursor-pointer hover:opacity-100">
-              Purchases
-            </li>
-          </ul>
-        </div>
-      </header>
+      <Header
+        links={[
+          { label: "Dashboard", link: "/overview" },
+          { label: "Purchases" },
+        ]}
+      />
       <div className="p-5 overflow-y-auto h-full pb-20">
         <div className="flex items-center justify-between w-full">
           <div>
@@ -58,7 +67,7 @@ export default async function PurchasesPage() {
             </p>
           </div>
         </div>
-        <div className="flex items-center justify-between gap-5 w-full">
+        <div className="flex items-center justify-between gap-5 w-full max-w-full overflow-x-auto">
           <div className="border p-5 bg-green-50 border-green-300 text-primary rounded-2xl w-full">
             <div className="flex items-start gap-4">
               <div className="p-3 rounded-full border bg-green-200 border-green-200">
@@ -84,12 +93,7 @@ export default async function PurchasesPage() {
                 <Clock className="text-yellow-700 w-7 h-7" />
               </div>
               <div className="flex flex-col gap-1">
-                <h3 className="text-md ">
-                  Pending{" "}
-                  <span className="text-yellow-800/80 text-sm">
-                    {"(To Pay)"}
-                  </span>
-                </h3>
+                <h3 className="text-md ">Pending </h3>
                 <span className="text-3xl font-semibold">
                   {formatCurrency(
                     invoices.reduce((acc, curr) => {
