@@ -82,7 +82,7 @@ export default async function Page() {
             src={InvoicePayment.src}
             className="absolute z-99 rounded-lg lg:rounded-2xl drop-shadow-xl -rotate-3 -right-20 lg:right-20 w-[150px]  lg:w-[300px]"
           />
-          <div className="bg-[#00A219] w-[900px] h-[400px] rounded-full blur-[200px]" />
+          <div className="bg-[#00A219] w-[900px] h-[400px] rounded-full trasnform translate-z-0 blur-[200px]" />
         </div>
       </section>
       <Separator className="bg-green-500/20 relative lg:mt-[200px]">

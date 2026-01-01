@@ -2,7 +2,8 @@ import { QuickActions } from "@/components/overview/quick-actions";
 import { RecentTransactions } from "@/components/overview/recent-transactions";
 import { db } from "@/lib/db";
 import { formatCurrency } from "@/utils/currency";
-import { Landmark, ShoppingCart, Tag } from "lucide-react";
+import { ChevronRight, Landmark, ShoppingCart, Tag } from "lucide-react";
+import Link from "next/link";
 
 export default async function Page() {
   const journalEntries = await db.journalEntry.findMany({
@@ -36,6 +37,12 @@ export default async function Page() {
       <header className="w-full h-16 bg-white border-b">
         <div className="flex flex-col justify-center w-full h-full px-5 text-primary">
           <ul className="flex items-center gap-3">
+            <Link href={"/"}>
+              <li className="text-sm font-medium opacity-80 cursor-pointer hover:opacity-100">
+                Dashboard
+              </li>
+            </Link>
+            <ChevronRight className="w-4 h-4" />
             <li className="text-sm font-medium cursor-pointer hover:opacity-100">
               Overview
             </li>
@@ -51,7 +58,7 @@ export default async function Page() {
             </p>
           </div>
         </div>
-        <div className="flex items-center justify-between gap-5 w-full">
+        <div className="flex justify-between items-center gap-2 lg:gap-5 w-full mt-3 lg:mt-0 max-w-full overflow-x-auto">
           <div className="border p-5 bg-blue-50 border-blue-300 text-blue-700 rounded-2xl w-full">
             <div className="flex items-start gap-4">
               <div className="p-3 rounded-full border border-blue-200 bg-blue-200">
@@ -93,13 +100,13 @@ export default async function Page() {
           </div>
         </div>
         <div>
-          <div>
+          <div className="mt-5 lg:mt-0">
             <h1 className="font-medium text-lg">Activity</h1>
             <p className="text-sm text-muted-foreground">
               View your recent activity.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-5 mt-5">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
             <RecentTransactions journalEntries={journalEntries} />
             <QuickActions />
           </div>

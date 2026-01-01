@@ -28,44 +28,50 @@ export const QuickActions = () => {
         <Link href={"/purchases/invoice"}>
           <div className="flex flex-col justify-between w-full h-full border border-green-300 rounded-xl bg-green-100 p-3 text-primary hover:bg-green-200 duration-200 cursor-pointer">
             <div className="flex items-center justify-between w-full">
-              <span className="font-medium text-xl">Record Purchase</span>
+              <span className="font-medium text-lg lg:text-xl">
+                Record Purchase
+              </span>
               <ArrowUpRight />
             </div>
             <div className="flex justify-end">
-              <ShoppingCart className="w-15 h-15 text-green-700" />
+              <ShoppingCart className="w-7 h-7 lg:w-15 lg:h-15 text-green-700" />
             </div>
           </div>
         </Link>
         <Link href={"/sales/invoice"}>
           <div className="flex flex-col justify-between w-full h-full border border-red-300 rounded-xl bg-red-100 p-3 text-red-900 hover:bg-red-200 duration-200 cursor-pointer">
             <div className="flex items-center justify-between w-full">
-              <span className="font-medium text-xl">Record Sale</span>
+              <span className="font-medium text-lg lg:text-xl">
+                Record Sale
+              </span>
               <ArrowUpRight />
             </div>
             <div className="flex justify-end">
-              <Tag className="w-15 h-15 text-red-700" />
+              <Tag className="w-7 h-7 lg:w-15 lg:h-15 text-red-700" />
             </div>
           </div>
         </Link>
         <Link href={"/journal-entries/create"}>
           <div className="flex flex-col justify-between w-full h-full border border-yellow-300 rounded-xl bg-yellow-100 p-3 text-yellow-900 hover:bg-yellow-200 duration-200 cursor-pointer">
             <div className="flex items-center justify-between w-full">
-              <span className="font-medium text-xl">Record Entry</span>
+              <span className="font-medium text-lg lg:text-xl">
+                Record Entry
+              </span>
               <ArrowUpRight />
             </div>
             <div className="flex justify-end">
-              <Notebook className="w-15 h-15 text-yellow-700" />
+              <Notebook className="w-7 h-7 lg:w-15 lg:h-15 text-yellow-700" />
             </div>
           </div>
         </Link>
         <Link href={"/chart-accounts/create"}>
           <div className="flex flex-col justify-between w-full h-full border border-violet-300 rounded-xl bg-violet-100 p-3 text-violet-900 hover:bg-violet-200 duration-200 cursor-pointer">
             <div className="flex items-center justify-between w-full">
-              <span className="font-medium text-xl">New CoA</span>
+              <span className="font-medium text-lg lg:text-xl">New CoA</span>
               <ArrowUpRight />
             </div>
             <div className="flex justify-end">
-              <ChartArea className="w-15 h-15 text-violet-700" />
+              <ChartArea className="w-7 h-7 lg:w-15 lg:h-15 text-violet-700" />
             </div>
           </div>
         </Link>
