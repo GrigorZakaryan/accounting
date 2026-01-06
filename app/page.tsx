@@ -26,9 +26,11 @@ export default async function Page() {
               <li className="cursor-pointer">Pricing</li>
               <li className="cursor-pointer">Features</li>
             </ul>
-            <button className="bg-gradient-to-br from-[#00B21B] via-[#006610] hover:via-[#004C0B] to-[#00600E] w-[100px] py-2 text-white rounded-full text-sm font-medium duration-200 cursor-pointer">
-              Try Demo
-            </button>
+            <Link href={"/overview"}>
+              <button className="bg-gradient-to-br from-[#00B21B] via-[#006610] hover:via-[#004C0B] to-[#00600E] w-[100px] py-2 text-white rounded-full text-sm font-medium duration-200 cursor-pointer">
+                Try Demo
+              </button>
+            </Link>
           </div>
         </header>
       </div>
@@ -49,7 +51,7 @@ export default async function Page() {
               individuals optimize their financial decisions.
             </p>
             <div className="flex items-center gap-5 mt-10 relative z-10">
-              <button className="bg-white w-[150px] py-2.5 text-green-900 rounded-full font-medium cursor-pointer opacity-80 hover:opacity-100">
+              <button className="bg-white w-[150px] py-2.5 text-green-900 rounded-full font-medium cursor-pointer opacity-80 hover:opacity-100 relative">
                 Join Waitlist
               </button>
               <Link href={"/overview"}>
@@ -60,29 +62,31 @@ export default async function Page() {
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-center relative w-full lg:py-[150px] border-x border-green-500/20">
-          <Image
-            width={300}
-            height={300}
-            alt="Hero"
-            src={Purchases.src}
-            className="absolute z-99 rounded-sm lg:rounded-xl drop-shadow-xl rotate-6 -left-10 lg:left-20 w-[150px] lg:w-[300px] object-cover"
-          />
-          <Image
-            width={700}
-            height={500}
-            alt="Hero"
-            src={HeroDashboard.src}
-            className="absolute z-90 rounded-lg lg:rounded-2xl w-[300px] lg:w-[700px] object-cover"
-          />
-          <Image
-            width={300}
-            height={300}
-            alt="Hero"
-            src={InvoicePayment.src}
-            className="absolute z-99 rounded-lg lg:rounded-2xl drop-shadow-xl -rotate-3 -right-20 lg:right-20 w-[150px]  lg:w-[300px]"
-          />
-          <div className="bg-[#00A219] w-[900px] h-[400px] rounded-full trasnform translate-z-0 blur-[200px]" />
+        <div className="w-full border-x border-green-500/20 lg:py-[150px]">
+          <div className="flex items-center justify-center relative w-full md:max-w-[400px] lg:max-w-[700px] left-[50%] translate-x-[-50%] z-[1]">
+            <Image
+              width={300}
+              height={300}
+              alt="Hero"
+              src={Purchases.src}
+              className="absolute z-99 rounded-sm lg:rounded-xl drop-shadow-xl rotate-6 -left-10 lg:-left-40 w-[150px] md:w-[200px] lg:w-[300px] object-cover"
+            />
+            <Image
+              width={700}
+              height={500}
+              alt="Hero"
+              src={HeroDashboard.src}
+              className="absolute z-90 rounded-lg lg:rounded-2xl w-[300px] md:w-[700px] object-cover"
+            />
+            <Image
+              width={300}
+              height={300}
+              alt="Hero"
+              src={InvoicePayment.src}
+              className="absolute z-99 rounded-lg lg:rounded-2xl drop-shadow-xl -rotate-3 -right-20 lg:-right-50 w-[150px] lg:w-[300px]"
+            />
+            <div className="bg-[#00A219] relative left-[50%] translate-x-[-50%] w-[900px] h-[400px] rounded-full trasnform translate-z-0 blur-[200px]" />
+          </div>
         </div>
       </section>
       <Separator className="bg-green-500/20 relative lg:mt-[200px]">
@@ -238,7 +242,11 @@ export default async function Page() {
             <h1 className="text-2xl font-medium">Social Meida</h1>
             <div className="flex flex-col gap-3 mt-5">
               <Link href={"#"}>Instagram</Link>
-              <Link href={"#"}>LinkedIn</Link>
+              <Link
+                href={"https://www.linkedin.com/in/grigor-zakaryan-42a83b288/"}
+              >
+                LinkedIn
+              </Link>
             </div>
           </div>
         </div>
@@ -251,9 +259,11 @@ export default async function Page() {
         <div className="flex items-center justify-center border-x border-green-500/20 py-5">
           <span className="text-xs lg:text-sm text-green-900">
             © 2025 All rights reserved. Built with ❤️ by{" "}
-            <span className="font-medium underline cursor-pointer">
-              zakaweb
-            </span>
+            <Link href={"https://www.zakaweb.com"}>
+              <span className="font-medium underline cursor-pointer">
+                zakaweb
+              </span>
+            </Link>
             .
           </span>
         </div>
