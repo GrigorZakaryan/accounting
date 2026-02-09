@@ -12,7 +12,7 @@ export interface Payment {
 }
 
 export interface Invoice {
-  number: string;
+  number: number;
   id: string;
   type: InvoiceType;
   issueDate: Date;

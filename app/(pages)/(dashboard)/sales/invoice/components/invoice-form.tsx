@@ -30,21 +30,23 @@ import { formatCurrency } from "@/utils/currency";
 import { inputSaleInvoiceSchema } from "@/schemas/invoice-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDownIcon, Plus, Save, Trash } from "lucide-react";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
+import z, { uuid } from "zod";
 
 import axios from "axios";
 import { redirect } from "next/navigation";
 import { Party } from "@/lib/generated/prisma";
 import Link from "next/link";
 import { Spinner } from "@/components/ui/spinner";
+import { format } from "date-fns";
 
 interface InvoiceItem {
   id: string;
   description: string;
   quantity: number;
   unitPrice: number;
+  unitCost: number;
   total: number;
 }
 
@@ -54,13 +56,19 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
   const [dueDateOpen, dueDateSetOpen] = useState(false);
 
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([
-    { id: useId(), description: "", quantity: 1, unitPrice: 0, total: 0 },
+    {
+      id: crypto.randomUUID(),
+      description: "",
+      quantity: 1,
+      unitPrice: 0,
+      unitCost: 0,
+      total: 0,
+    },
   ]);
 
   const form = useForm<z.infer<typeof inputSaleInvoiceSchema>>({
     resolver: zodResolver(inputSaleInvoiceSchema),
     defaultValues: {
-      number: "INV-",
       issueDate: new Date(),
       dueDate: new Date(),
       description: "",
@@ -71,6 +79,13 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
   });
 
   const [tax, setTax] = useState(22);
+
+  const calculateTotalCost = () => {
+    return invoiceItems.reduce(
+      (acc, item) => acc + item.unitCost * item.quantity,
+      0,
+    );
+  };
 
   const calculateSubtotal = () => {
     return invoiceItems.reduce((acc, item) => acc + item.total, 0);
@@ -90,6 +105,7 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
       description: "",
       quantity: 1,
       unitPrice: 0,
+      unitCost: 0,
       total: 0,
     };
 
@@ -115,6 +131,7 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
       invoiceItems.map((item) => {
         if (item.id === id) {
           const updated = { ...item, [field]: value };
+
           if (field === "quantity" || field === "unitPrice") {
             updated.total =
               Number(updated.quantity) * Number(updated.unitPrice);
@@ -122,12 +139,12 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
           return updated;
         }
         return item;
-      })
+      }),
     );
   };
 
   const onSubmit = async (
-    invoiceData: z.infer<typeof inputSaleInvoiceSchema>
+    invoiceData: z.infer<typeof inputSaleInvoiceSchema>,
   ) => {
     try {
       setLoading(true);
@@ -135,6 +152,7 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
         invoice: {
           ...invoiceData,
           businessId: "123",
+          cost: calculateTotalCost(),
           subtotal: calculateSubtotal(),
           total: calculateTotal(),
         },
@@ -157,27 +175,7 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
         <CardContent>
           <Form {...form}>
             <form id="invoice-form" onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="flex items-center gap-10 w-full">
-                <FormField
-                  control={form.control}
-                  name="number"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Invoice Number</FormLabel>
-                      <FormControl>
-                        <Input
-                          disabled={loading}
-                          placeholder="INV-001"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        This is the invoice number.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="grid grid-cols-2 gap-10">
                 <FormField
                   control={form.control}
                   name="customerId"
@@ -251,7 +249,7 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
                               className="w-full justify-between font-normal"
                             >
                               {field.value
-                                ? field.value.toLocaleDateString()
+                                ? format(field.value, "dd/MM/yyyy")
                                 : "Select date"}
                               <ChevronDownIcon />
                             </Button>
@@ -298,7 +296,7 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
                               className="w-full justify-between font-normal"
                             >
                               {field.value
-                                ? field.value.toLocaleDateString()
+                                ? format(field.value, "dd/MM/yyyy")
                                 : "Select date"}
                               <ChevronDownIcon />
                             </Button>
@@ -469,6 +467,30 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
                         type="number"
                         className="bg-white"
                         id={`${item.id}-item-unitprice`}
+                        placeholder="0.00"
+                      />
+                    </div>
+                    <div className="flex flex-col items-start gap-2 min-w-30">
+                      <label
+                        className="text-sm font-medium"
+                        htmlFor={`${item.id}-item-unitcost`}
+                      >
+                        Unit Cost
+                      </label>
+                      <Input
+                        disabled={loading}
+                        onChange={(e) =>
+                          updateItem({
+                            id: item.id,
+                            field: "unitCost",
+                            value: Number(e.target.value),
+                          })
+                        }
+                        min={1}
+                        value={item.unitCost}
+                        type="number"
+                        className="bg-white"
+                        id={`${item.id}-item-unitcost`}
                         placeholder="0.00"
                       />
                     </div>

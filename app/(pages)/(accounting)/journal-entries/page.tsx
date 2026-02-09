@@ -8,7 +8,6 @@ export default async function ChartAccountsPage() {
     include: {
       journalLines: {
         include: { chartAccount: true },
-        orderBy: { chartAccount: { code: "asc" } },
       },
     },
   });

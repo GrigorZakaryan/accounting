@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -20,6 +19,7 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -29,54 +29,94 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/utils/currency";
 import { inputPurchaseInvoiceSchema } from "@/schemas/invoice-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDownIcon, Plus, Save, Trash } from "lucide-react";
-import { useId, useState } from "react";
+import {
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronsUpDownIcon,
+  Plus,
+  Save,
+  Trash,
+} from "lucide-react";
+import { useEffect, useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
 import axios from "axios";
 import { redirect } from "next/navigation";
-import { Party } from "@/lib/generated/prisma";
+import { ChartAccount, Party } from "@/lib/generated/prisma";
 import { Spinner } from "@/components/ui/spinner";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import { CommandList } from "cmdk";
+import { cn } from "@/lib/utils";
 
 interface InvoiceItem {
   id: string;
   description: string;
   quantity: number;
   unitPrice: number;
+  discount: number;
+  tax: "22" | "10" | "5" | "4" | "0";
+  chartAccountId: string;
+  subtotal: number;
   total: number;
 }
 
-export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
+export const InvoiceForm = ({
+  suppliers,
+  CoAs,
+}: {
+  suppliers: Party[];
+  CoAs: ChartAccount[];
+}) => {
   const [loading, setLoading] = useState(false);
   const [issueDateOpen, issueDateSetOpen] = useState(false);
   const [dueDateOpen, dueDateSetOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([
-    { id: useId(), description: "", quantity: 1, unitPrice: 0, total: 0 },
+    {
+      id: crypto.randomUUID(),
+      description: "",
+      quantity: 1,
+      unitPrice: 0,
+      discount: 0,
+      tax: "22",
+      chartAccountId: "",
+      subtotal: 0,
+      total: 0,
+    },
   ]);
 
   const form = useForm<z.infer<typeof inputPurchaseInvoiceSchema>>({
     resolver: zodResolver(inputPurchaseInvoiceSchema),
     defaultValues: {
-      number: "INV-",
       issueDate: new Date(),
       dueDate: new Date(),
       description: "",
-      tax: 22,
       currency: "EUR",
       vendorId: "",
     },
   });
 
-  const [tax, setTax] = useState(22);
-
   const calculateSubtotal = () => {
-    return invoiceItems.reduce((acc, item) => acc + item.total, 0);
+    return invoiceItems.reduce((acc, item) => acc + item.subtotal, 0);
   };
 
   const calculateTax = () => {
-    return calculateSubtotal() * (tax / 100);
+    return invoiceItems.reduce(
+      (acc, item) => acc + (item.subtotal * Number(item.tax)) / 100,
+      0,
+    );
   };
 
   const calculateTotal = () => {
@@ -85,10 +125,14 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
 
   const addItem = () => {
     const newItem: InvoiceItem = {
-      id: new Date().toString(),
+      id: crypto.randomUUID(),
       description: "",
       quantity: 1,
       unitPrice: 0,
+      discount: 0,
+      tax: "22",
+      chartAccountId: "",
+      subtotal: 0,
       total: 0,
     };
 
@@ -114,22 +158,34 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
       invoiceItems.map((item) => {
         if (item.id === id) {
           const updated = { ...item, [field]: value };
-          if (field === "quantity" || field === "unitPrice") {
+          if (
+            field === "quantity" ||
+            field === "unitPrice" ||
+            field === "discount" ||
+            field === "tax"
+          ) {
+            updated.subtotal =
+              Number(updated.quantity) *
+              Number(
+                updated.unitPrice -
+                  updated.unitPrice * (updated.discount / 100),
+              );
+
             updated.total =
-              Number(updated.quantity) * Number(updated.unitPrice);
+              updated.subtotal + (updated.subtotal * Number(updated.tax)) / 100;
           }
           return updated;
         }
         return item;
-      })
+      }),
     );
   };
 
   const onSubmit = async (
-    invoiceData: z.infer<typeof inputPurchaseInvoiceSchema>
+    invoiceData: z.infer<typeof inputPurchaseInvoiceSchema>,
   ) => {
     setLoading(true);
-    const res = await axios.post("/purchases/api", {
+    await axios.post("/purchases/api", {
       invoice: {
         ...invoiceData,
         businessId: "123",
@@ -152,33 +208,13 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
         <CardContent>
           <Form {...form}>
             <form id="invoice-form" onSubmit={form.handleSubmit(onSubmit)}>
-              <div className="flex items-center gap-10 w-full">
-                <FormField
-                  control={form.control}
-                  name="number"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Invoice Number</FormLabel>
-                      <FormControl>
-                        <Input
-                          disabled={loading}
-                          placeholder="INV-001"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        This is the invoice number.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="grid grid-cols-2 gap-10">
                 <FormField
                   control={form.control}
                   name="vendorId"
                   render={({ field }) => (
                     <FormItem className="w-full">
-                      <FormLabel>Vendor</FormLabel>
+                      <FormLabel>Supplier</FormLabel>
                       <FormControl>
                         <Select
                           disabled={loading}
@@ -186,7 +222,7 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                           value={field.value}
                         >
                           <SelectTrigger disabled={loading} className="w-full">
-                            <SelectValue placeholder="Choose vendor" />
+                            <SelectValue placeholder="Choose supplier" />
                           </SelectTrigger>
                           <SelectContent position="popper">
                             {suppliers.map((supplier) => (
@@ -201,9 +237,6 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                           </SelectContent>
                         </Select>
                       </FormControl>
-                      <FormDescription>
-                        Choose one of your customers.
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -232,7 +265,7 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                               id="date"
                               className="w-full justify-between font-normal"
                             >
-                              {field.value
+                              {mounted && field.value
                                 ? field.value.toLocaleDateString()
                                 : "Select date"}
                               <ChevronDownIcon />
@@ -279,7 +312,7 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                               id="date"
                               className="w-full justify-between font-normal"
                             >
-                              {field.value
+                              {mounted && field.value
                                 ? field.value.toLocaleDateString()
                                 : "Select date"}
                               <ChevronDownIcon />
@@ -338,9 +371,6 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                           </SelectContent>
                         </Select>
                       </FormControl>
-                      <FormDescription>
-                        Choose one of your customers.
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -358,9 +388,6 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                           {...field}
                         />
                       </FormControl>
-                      <FormDescription>
-                        This is the invoice description.
-                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -370,6 +397,9 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
           </Form>
         </CardContent>
       </Card>
+
+      {/* INVOICE ITEMS */}
+
       <Card>
         <CardHeader className="flex items-center justify-between w-full">
           <CardTitle>Line Items</CardTitle>
@@ -379,108 +409,263 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
         </CardHeader>
         <CardContent className="flex flex-col items-end gap-10">
           <div className="w-full flex flex-col gap-5">
-            {invoiceItems.map((item) => {
+            {invoiceItems.map((item, idx) => {
               return (
-                <div key={item.id} className="p-5 bg-muted rounded-lg border">
-                  <div className="flex items-end justify-between w-full gap-3">
-                    <div className="flex flex-col items-start gap-2 w-full">
-                      <label
-                        className="text-sm font-medium"
-                        htmlFor={`${item.id}-item-description`}
-                      >
-                        Description
-                      </label>
-                      <Input
-                        disabled={loading}
-                        onChange={(e) =>
-                          updateItem({
-                            id: item.id,
-                            field: "description",
-                            value: e.target.value,
-                          })
-                        }
-                        value={item.description}
-                        type="text"
-                        className="bg-white"
-                        id={`${item.id}-item-description`}
-                        placeholder="Item description"
-                      />
+                <div key={item.id} className="w-full flex items-center">
+                  <div className="p-5 bg-muted rounded-lg border w-full">
+                    <div className="flex flex-col items-start justify-between w-full gap-5">
+                      <div className="flex flex-col items-start gap-2 w-full">
+                        <label
+                          className="text-sm font-medium"
+                          htmlFor={`${idx}-item-description`}
+                        >
+                          Description
+                        </label>
+                        <Textarea
+                          disabled={loading}
+                          onChange={(e) =>
+                            updateItem({
+                              id: item.id,
+                              field: "description",
+                              value: e.target.value,
+                            })
+                          }
+                          value={item.description}
+                          className="bg-white"
+                          id={`${idx}-item-description`}
+                          placeholder="Item description"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-start gap-2 min-w-30">
+                          <label
+                            className="text-sm font-medium"
+                            htmlFor={`${idx}-item-quantity`}
+                          >
+                            Quantity
+                          </label>
+                          <Input
+                            disabled={loading}
+                            min={1}
+                            onChange={(e) =>
+                              updateItem({
+                                id: item.id,
+                                field: "quantity",
+                                value: Number(e.target.value),
+                              })
+                            }
+                            value={item.quantity}
+                            type="number"
+                            className="bg-white"
+                            id={`${idx}-item-quantity`}
+                            placeholder="1"
+                          />
+                        </div>
+                        <div className="flex flex-col items-start gap-2 min-w-30">
+                          <label
+                            className="text-sm font-medium"
+                            htmlFor={`${idx}-item-unitprice`}
+                          >
+                            Unit Price
+                          </label>
+                          <Input
+                            disabled={loading}
+                            onChange={(e) =>
+                              updateItem({
+                                id: item.id,
+                                field: "unitPrice",
+                                value: Number(e.target.value),
+                              })
+                            }
+                            min={1}
+                            value={item.unitPrice}
+                            type="number"
+                            className="bg-white"
+                            id={`${idx}-item-unitprice`}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div className="flex flex-col items-start gap-2 min-w-30">
+                          <label
+                            className="text-sm font-medium"
+                            htmlFor={`${idx}-item-discount`}
+                          >
+                            Discount %
+                          </label>
+                          <Input
+                            disabled={loading}
+                            onChange={(e) =>
+                              updateItem({
+                                id: item.id,
+                                field: "discount",
+                                value: Number(e.target.value),
+                              })
+                            }
+                            max={100}
+                            min={0}
+                            value={item.discount}
+                            type="number"
+                            className="bg-white"
+                            id={`${idx}-item-discount`}
+                            placeholder="5"
+                          />
+                        </div>
+                        <div className="flex flex-col items-start gap-2 min-w-30">
+                          <label
+                            className="text-sm font-medium"
+                            htmlFor={`${idx}-item-subtotal`}
+                          >
+                            Subtotal
+                          </label>
+                          <Input
+                            disabled={loading}
+                            onChange={() => {}}
+                            value={item.subtotal}
+                            type="number"
+                            className="bg-white cursor-not-allowed"
+                            id={`${idx}-item-total`}
+                            placeholder="0.00"
+                          />
+                        </div>
+                        <div className="flex flex-col items-start gap-2 min-w-30">
+                          <label
+                            className="text-sm font-medium"
+                            htmlFor={`${idx}-item-total`}
+                          >
+                            Total{" "}
+                            <span className="text-muted-foreground">
+                              {"(TAX included)"}
+                            </span>
+                          </label>
+                          <Input
+                            disabled={loading}
+                            onChange={() => {}}
+                            value={item.total}
+                            type="number"
+                            className="bg-white cursor-not-allowed"
+                            id={`${idx}-item-total`}
+                            placeholder="0.00"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex flex-col items-start gap-2">
+                          <label
+                            className="text-sm font-medium"
+                            htmlFor={`${idx}-item-discount`}
+                          >
+                            Tax %
+                          </label>
+                          <Select
+                            value={item.tax}
+                            onValueChange={(e) =>
+                              updateItem({
+                                id: item.id,
+                                field: "tax",
+                                value: e,
+                              })
+                            }
+                          >
+                            <SelectTrigger className="min-w-[200px] bg-white cursor-pointer">
+                              <SelectValue placeholder="Tax" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectItem value="22">
+                                  22% Standard rate
+                                </SelectItem>
+                                <SelectItem value="10">10% Reduced</SelectItem>
+                                <SelectItem value="5">5% Reduced</SelectItem>
+                                <SelectItem value="4">
+                                  4% Super-reduced
+                                </SelectItem>
+                                <SelectItem value="0">0% Excempt</SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="flex flex-col items-start gap-2">
+                          <label
+                            className="text-sm font-medium"
+                            htmlFor={`${idx}-item-discount`}
+                          >
+                            Account
+                          </label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className="w-[300px] justify-between"
+                              >
+                                {item.chartAccountId ? (
+                                  <>
+                                    {
+                                      CoAs.find(
+                                        (CoA) => CoA.id === item.chartAccountId,
+                                      )?.code
+                                    }{" "}
+                                    |{" "}
+                                    {
+                                      CoAs.find(
+                                        (CoA) => CoA.id === item.chartAccountId,
+                                      )?.name
+                                    }
+                                  </>
+                                ) : (
+                                  "Select account..."
+                                )}
+                                <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[300px] p-0">
+                              <Command>
+                                <CommandInput />
+                                <CommandList className="min-w-[400px]">
+                                  <CommandEmpty>No account found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {CoAs.map((CoA) => (
+                                      <CommandItem
+                                        key={CoA.id}
+                                        value={CoA.name.toLocaleLowerCase()}
+                                        onSelect={() => {
+                                          updateItem({
+                                            id: item.id,
+                                            field: "chartAccountId",
+                                            value: CoA.id,
+                                          });
+                                        }}
+                                      >
+                                        <CheckIcon
+                                          className={cn(
+                                            "mr-2 h-4 w-4",
+                                            item.chartAccountId === CoA.id
+                                              ? "opacity-100"
+                                              : "opacity-0",
+                                          )}
+                                        />
+                                        {CoA.code} | {CoA.name}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex flex-col items-start gap-2 min-w-30">
-                      <label
-                        className="text-sm font-medium"
-                        htmlFor={`${item.id}-item-quantity`}
-                      >
-                        Quantity
-                      </label>
-                      <Input
-                        disabled={loading}
-                        onChange={(e) =>
-                          updateItem({
-                            id: item.id,
-                            field: "quantity",
-                            value: Number(e.target.value),
-                          })
-                        }
-                        min={1}
-                        value={item.quantity}
-                        type="number"
-                        className="bg-white"
-                        id={`${item.id}-item-quantity`}
-                        placeholder="1"
-                      />
-                    </div>
-                    <div className="flex flex-col items-start gap-2 min-w-30">
-                      <label
-                        className="text-sm font-medium"
-                        htmlFor={`${item.id}-item-unitprice`}
-                      >
-                        Unit Price
-                      </label>
-                      <Input
-                        disabled={loading}
-                        onChange={(e) =>
-                          updateItem({
-                            id: item.id,
-                            field: "unitPrice",
-                            value: Number(e.target.value),
-                          })
-                        }
-                        min={1}
-                        value={item.unitPrice}
-                        type="number"
-                        className="bg-white"
-                        id={`${item.id}-item-unitprice`}
-                        placeholder="0.00"
-                      />
-                    </div>
-                    <div className="flex flex-col items-start gap-2 min-w-30">
-                      <label
-                        className="text-sm font-medium"
-                        htmlFor={`${item.id}-item-total`}
-                      >
-                        Total
-                      </label>
-                      <Input
-                        disabled={loading}
-                        onChange={() => {}}
-                        value={item.total}
-                        type="number"
-                        className="bg-white"
-                        id={`${item.id}-item-total`}
-                        placeholder="0.00"
-                      />
-                    </div>
-                    <div className="flex flex-col items-start gap-2 ml-5">
-                      <Button
-                        disabled={loading ? true : invoiceItems.length <= 1}
-                        onClick={() => removeItem(item.id)}
-                        size={"icon"}
-                        variant={"destructive"}
-                      >
-                        <Trash />
-                      </Button>
-                    </div>
+                  </div>
+                  <div className="flex flex-col items-start ml-5">
+                    <Button
+                      disabled={loading ? true : invoiceItems.length <= 1}
+                      onClick={() => removeItem(item.id)}
+                      size={"icon"}
+                      variant={"destructive"}
+                    >
+                      <Trash />
+                    </Button>
                   </div>
                 </div>
               );
@@ -493,25 +678,7 @@ export const InvoiceForm = ({ suppliers }: { suppliers: Party[] }) => {
                 {formatCurrency(calculateSubtotal())}
               </span>
             </div>
-            <div className="flex items-center justify-between w-full">
-              <h3 className="font-medium text-sm">Tax Rate</h3>
-              <Input
-                disabled={loading}
-                className="max-w-20"
-                min={0}
-                max={99}
-                type="number"
-                value={tax}
-                onChange={(e) => {
-                  if (
-                    Number(e.target.value) < 100 &&
-                    Number(e.target.value) >= 0
-                  ) {
-                    setTax(Number(e.target.value));
-                  }
-                }}
-              />
-            </div>
+
             <div className="flex items-center justify-between w-full">
               <h3 className="font-medium text-sm">Tax</h3>
               <span className="font-medium">

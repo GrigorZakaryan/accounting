@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { Invoice, InvoiceItem, Party, Payment } from "@/lib/generated/prisma";
+import { Invoice, InvoiceItem, Payment } from "@/lib/generated/prisma";
 import { fullPurchaseInvoiceSchema } from "@/schemas/invoice-schema";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -8,34 +8,41 @@ export const POST = async (req: NextRequest) => {
 
   const {
     invoice,
-    vendor,
     items,
     payments,
   }: {
     invoice: Invoice;
-    vendor: Party | null;
     items: InvoiceItem[];
     payments: Payment[];
   } = body;
 
   console.log(body);
 
+  // CALCULATE TAXED AMOUNT
+  const taxedAmount = items.reduce(
+    (acc, curr) => acc + Number(curr.subtotal) * (curr.tax / 100),
+    0,
+  );
+
+  // CONVERT STRING TO ACTUALT DATETIME
   const formattedInvoice = {
     ...invoice,
     issueDate: new Date(invoice.issueDate),
     dueDate: invoice.dueDate && new Date(invoice.dueDate),
   };
 
+  // VALIDATE INVOICE FIELDS
   const invoiceParsed = fullPurchaseInvoiceSchema.safeParse(formattedInvoice);
 
   if (!invoiceParsed.success) {
     console.error("Invoice fields are Invalid");
     return NextResponse.json(
       { errors: invoiceParsed.error.flatten() },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
+  // CREATE THE INVOICE
   await db.invoice.create({
     data: {
       ...invoice,
@@ -46,7 +53,11 @@ export const POST = async (req: NextRequest) => {
           data: items.map((item) => ({
             description: item.description,
             total: item.total,
+            subtotal: item.subtotal,
             quantity: item.quantity,
+            discount: item.discount,
+            tax: Number(item.tax),
+            chartAccountId: item.chartAccountId,
             unitPrice: item.unitPrice,
           })),
         },
@@ -55,37 +66,52 @@ export const POST = async (req: NextRequest) => {
     },
   });
 
+  const taxCoA = await db.chartAccount.findUnique({ where: { code: "06.03" } });
+  const debtsCoA = await db.chartAccount.findUnique({
+    where: { code: "14.01" },
+  });
+
+  if (!taxCoA || !debtsCoA) {
+    return new NextResponse("CoAs not found!", { status: 500 });
+  }
+
+  // CREATE THE JOURNAL ENTRY
+  const accounts = items.map((item) => ({
+    chartAccountId: item.chartAccountId,
+    type: "DEBIT" as const,
+    amount: Number(item.subtotal),
+    description: item.description,
+  }));
+
+  const lines = [
+    ...accounts,
+    {
+      chartAccountId: taxCoA.id,
+      type: "DEBIT" as const,
+      amount: taxedAmount,
+      description: "",
+    },
+    {
+      chartAccountId: debtsCoA.id,
+      type: "CREDIT" as const,
+      amount: Number(invoice.total),
+      description: "",
+    },
+  ];
+
   await db.journalEntry.create({
     data: {
       date: new Date(invoice.issueDate),
-      description: `Purchase Invoice: ${invoice.number}`,
+      description: `Purchase Invoice: INV-${invoice.number}`,
       invoiceId: invoice.id,
       journalLines: {
         createMany: {
-          data: [
-            {
-              chartAccountId: "cmhs7s5ck0009i71lpauowi5u",
-              type: "CREDIT",
-              amount: Number(invoice.total),
-              description: "",
-            },
-            {
-              chartAccountId: "cmhzerkt4000di7ow8ot17t03",
-              type: "DEBIT",
-              amount: Number(invoice.subtotal) * (Number(invoice.tax) / 100),
-              description: "",
-            },
-            {
-              chartAccountId: "cmhs7pd1d0004i71l5ydszb6x",
-              type: "DEBIT",
-              amount: Number(invoice.subtotal),
-              description: "",
-            },
-          ],
+          data: lines,
         },
       },
     },
   });
 
+  // RETURN THE RESPONSE
   return new NextResponse("Invoice created succesfully!");
 };

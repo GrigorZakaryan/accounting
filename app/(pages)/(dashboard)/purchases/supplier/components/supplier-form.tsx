@@ -12,6 +12,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 
 import { inputSupplierSchema } from "@/schemas/supplier-schema";
@@ -21,6 +22,7 @@ import { Save } from "lucide-react";
 import { redirect } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import z from "zod";
 
 export const SupplierForm = () => {
@@ -39,17 +41,19 @@ export const SupplierForm = () => {
   });
 
   async function onSubmit(values: z.infer<typeof inputSupplierSchema>) {
-    setLoading(true);
-    const res = await axios.post("/purchases/supplier/api", {
-      supplierData: { ...values },
-    });
+    try {
+      setLoading(true);
+      await axios.post("/purchases/supplier/api", {
+        supplierData: { ...values },
+      });
 
-    if (res.status !== 200) {
-      alert("Something went wrong!");
+      toast.success("Supplier added succesfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong!");
+    } finally {
       setLoading(false);
     }
-    setLoading(false);
-    redirect("/purchases");
   }
 
   return (
@@ -200,13 +204,20 @@ export const SupplierForm = () => {
             </div>
             <div className="flex justify-end w-full gap-3">
               <Button
+                disabled={loading}
                 variant={"outline"}
                 onClick={() => redirect("/purchases")}
               >
                 Cancel
               </Button>
-              <Button type="submit">
-                <Save /> Save Supplier
+              <Button disabled={loading} type="submit">
+                {loading ? (
+                  <Spinner />
+                ) : (
+                  <>
+                    <Save /> Save Supplier
+                  </>
+                )}
               </Button>
             </div>
           </form>

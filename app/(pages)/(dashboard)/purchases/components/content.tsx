@@ -29,7 +29,7 @@ export const PurchasesContent = ({
   payments: Payment[];
 }) => {
   const [tab, setTab] = useState<"invoices" | "suppliers" | "payments">(
-    "invoices"
+    "invoices",
   );
   const [isClient, setIsClient] = useState(false);
   useEffect(() => setIsClient(true), []);
@@ -98,7 +98,7 @@ export const PurchasesContent = ({
                 {invoices.map((invoice) => (
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium">
-                      {invoice.number}
+                      INV-{invoice.number}
                     </TableCell>
                     <TableCell>{invoice.vendor?.legalName}</TableCell>
                     <TableCell>
@@ -238,7 +238,7 @@ export const PurchasesContent = ({
                     <TableCell>
                       {
                         invoices.find(
-                          (invoice) => invoice.id === payment.invoiceId
+                          (invoice) => invoice.id === payment.invoiceId,
                         )?.number
                       }
                     </TableCell>

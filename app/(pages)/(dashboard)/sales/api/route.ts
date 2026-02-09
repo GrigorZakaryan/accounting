@@ -39,6 +39,7 @@ export const POST = async (req: NextRequest) => {
   await db.invoice.create({
     data: {
       ...invoice,
+      cost: invoice.cost,
       type: "SALE",
       businessId: "123",
       items: { createMany: { data: items } },
