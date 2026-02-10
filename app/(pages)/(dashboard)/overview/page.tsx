@@ -2,26 +2,7 @@ import { QuickActions } from "@/components/overview/quick-actions";
 import { RecentTransactions } from "@/components/overview/recent-transactions";
 import { db } from "@/lib/db";
 import { formatCurrency } from "@/utils/currency";
-import {
-  ChevronRight,
-  Landmark,
-  Menu,
-  SheetIcon,
-  ShoppingCart,
-  Tag,
-} from "lucide-react";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { SidebarMenu } from "@/components/sidebar-menu";
+import { Landmark, ShoppingCart, Tag } from "lucide-react";
 import { Header } from "../../components/header";
 
 export default async function Page() {
@@ -29,7 +10,7 @@ export default async function Page() {
     orderBy: { date: "desc" },
   });
   const bank_account = await db.chartAccount.findUnique({
-    where: { code: "1020" },
+    where: { code: "08.01" },
     include: { journalLines: true },
   });
   const bank =
@@ -43,12 +24,12 @@ export default async function Page() {
   const purchases = await db.invoice.findMany({ where: { type: "PURCHASE" } });
   const purchases_total = purchases.reduce(
     (acc, curr) => Number(acc) + Number(curr.total),
-    0
+    0,
   );
   const sales = await db.invoice.findMany({ where: { type: "SALE" } });
   const sales_total = sales.reduce(
     (acc, curr) => Number(acc) + Number(curr.total),
-    0
+    0,
   );
 
   return (

@@ -10,17 +10,17 @@ export const POST = async (req: NextRequest) => {
     if (!invoiceId)
       return NextResponse.json(
         { error: "Invoice field is missing!" },
-        { status: 400 }
+        { status: 400 },
       );
     if (!amount)
       return NextResponse.json(
         { error: "Amount field is missing!" },
-        { status: 400 }
+        { status: 400 },
       );
     if (!date)
       return NextResponse.json(
         { error: "Date field is missing!" },
-        { status: 400 }
+        { status: 400 },
       );
 
     // Find the invoice
@@ -32,13 +32,13 @@ export const POST = async (req: NextRequest) => {
     if (!existingInvoice)
       return NextResponse.json(
         { error: "Invoice doesn't exist!" },
-        { status: 404 }
+        { status: 404 },
       );
 
     // Calculate current total paid
     const totalPaid = existingInvoice.payments.reduce(
       (acc, curr) => acc + Number(curr.amount),
-      0
+      0,
     );
 
     if (amount > Math.abs(Number(existingInvoice.total) - totalPaid)) {
@@ -57,7 +57,7 @@ export const POST = async (req: NextRequest) => {
       }
       return NextResponse.json(
         { message: "Invoice is already fully paid!" },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -108,6 +108,18 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
+    const debtsCoA = await db.chartAccount.findUnique({
+      where: { code: "14.01" },
+    });
+
+    const banck_account = await db.chartAccount.findUnique({
+      where: { code: "08.01" },
+    });
+
+    if (!debtsCoA || !banck_account) {
+      return new NextResponse("CoAs not found!", { status: 500 });
+    }
+
     await db.journalEntry.create({
       data: {
         date: new Date(payment.date),
@@ -117,13 +129,13 @@ export const POST = async (req: NextRequest) => {
           createMany: {
             data: [
               {
-                chartAccountId: "cmhs7s5ck0009i71lpauowi5u",
+                chartAccountId: debtsCoA.id,
                 type: "DEBIT",
                 amount: Number(payment.amount),
                 description: "",
               },
               {
-                chartAccountId: "cmhs7o2lv0002i71lewufcb3c",
+                chartAccountId: banck_account.id,
                 type: "CREDIT",
                 amount: Number(payment.amount),
                 description: "",
@@ -143,7 +155,7 @@ export const POST = async (req: NextRequest) => {
     console.error("Payment creation error:", error);
     return NextResponse.json(
       { error: "Something went wrong!" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 };

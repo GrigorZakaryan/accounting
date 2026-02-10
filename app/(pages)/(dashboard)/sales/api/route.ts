@@ -8,7 +8,6 @@ export const POST = async (req: NextRequest) => {
 
   const {
     invoice,
-    customer,
     items,
     payments,
   }: {
@@ -47,10 +46,56 @@ export const POST = async (req: NextRequest) => {
       ...invoice,
       type: "SALE",
       businessId: "123",
-      items: { createMany: { data: items } },
+      items: {
+        createMany: {
+          data: items.map((item) => ({
+            description: item.description,
+            total: item.total,
+            subtotal: item.subtotal,
+            quantity: item.quantity,
+            discount: item.discount,
+            tax: Number(item.tax),
+            chartAccountId: item.chartAccountId,
+            unitPrice: item.unitPrice,
+          })),
+        },
+      },
       payments: { createMany: { data: payments } },
     },
   });
+
+  const taxCoA = await db.chartAccount.findUnique({ where: { code: "15.03" } });
+  const creditsCoA = await db.chartAccount.findUnique({
+    where: { code: "05.01" },
+  });
+
+  if (!taxCoA || !creditsCoA) {
+    return new NextResponse("CoAs not found!", { status: 500 });
+  }
+
+  // CREATE THE JOURNAL ENTRY
+  const accounts = items.map((item) => ({
+    chartAccountId: item.chartAccountId,
+    type: "CREDIT" as const,
+    amount: Number(item.subtotal),
+    description: item.description,
+  }));
+
+  const lines = [
+    ...accounts,
+    {
+      chartAccountId: taxCoA.id,
+      type: "CREDIT" as const,
+      amount: taxedAmount,
+      description: "",
+    },
+    {
+      chartAccountId: creditsCoA.id,
+      type: "DEBIT" as const,
+      amount: Number(invoice.total),
+      description: "",
+    },
+  ];
 
   await db.journalEntry.create({
     data: {
@@ -59,26 +104,7 @@ export const POST = async (req: NextRequest) => {
       invoiceId: invoice.id,
       journalLines: {
         createMany: {
-          data: [
-            {
-              chartAccountId: "cmhs7p4ov0003i71l69fnv226",
-              type: "DEBIT",
-              amount: Number(invoice.total),
-              description: "",
-            },
-            {
-              chartAccountId: "cmhs7v4th000ci71lje7qgt0b",
-              type: "CREDIT",
-              amount: taxedAmount,
-              description: "",
-            },
-            {
-              chartAccountId: "cmhs7pd1d0004i71l5ydszb6x",
-              type: "CREDIT",
-              amount: Number(invoice.subtotal),
-              description: "",
-            },
-          ],
+          data: lines,
         },
       },
     },
