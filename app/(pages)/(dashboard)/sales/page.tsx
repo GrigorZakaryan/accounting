@@ -1,25 +1,7 @@
 import { formatCurrency } from "@/utils/currency";
 import { db } from "@/lib/db";
-import {
-  Banknote,
-  ChevronRight,
-  Clock,
-  ClockArrowDown,
-  Menu,
-} from "lucide-react";
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import Link from "next/link";
+import { Banknote, Clock, ClockArrowDown } from "lucide-react";
 import { SalesContent } from "./components/content";
-import { Button } from "@/components/ui/button";
-import { SidebarMenu } from "@/components/sidebar-menu";
 import { Header } from "../../components/header";
 
 export default async function PurchasesPage() {
@@ -31,7 +13,6 @@ export default async function PurchasesPage() {
   const formattedInvoices = invoices.map((invoice) => ({
     ...invoice,
     subtotal: Number(invoice.subtotal),
-    tax: Number(invoice.tax),
     total: Number(invoice.total),
     payments: invoice.payments.map((payment) => ({
       ...payment,
@@ -76,7 +57,7 @@ export default async function PurchasesPage() {
                       return (
                         acc + (curr.status === "PAID" ? Number(curr.total) : 0)
                       );
-                    }, 0)
+                    }, 0),
                   )}
                 </span>
               </div>
@@ -101,7 +82,7 @@ export default async function PurchasesPage() {
                         acc +
                         (curr.status === "PENDING" ? Number(curr.total) : 0)
                       );
-                    }, 0)
+                    }, 0),
                   )}
                 </span>
               </div>
@@ -121,7 +102,7 @@ export default async function PurchasesPage() {
                         acc +
                         (curr.status === "OVERDUE" ? Number(curr.total) : 0)
                       );
-                    }, 0)
+                    }, 0),
                   )}
                 </span>
               </div>

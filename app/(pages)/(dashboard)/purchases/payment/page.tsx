@@ -13,7 +13,6 @@ export default async function Payment() {
   const formattedInvoices = invoices.map((invoice) => ({
     ...invoice,
     subtotal: Number(invoice.subtotal),
-    tax: Number(invoice.tax),
     total: Number(invoice.total),
     payments: invoice.payments.map((payment) => ({
       ...payment,

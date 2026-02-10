@@ -11,7 +11,6 @@ export default async function SalePaymentPage() {
 
   const formattedInvoices = invoices.map((invoice) => ({
     ...invoice,
-    tax: Number(invoice.tax),
     subtotal: Number(invoice.subtotal),
     total: Number(invoice.total),
     payments: invoice.payments.map((payment) => ({

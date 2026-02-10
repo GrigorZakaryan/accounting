@@ -19,7 +19,6 @@ export interface Invoice {
   dueDate: Date | null;
   description: string | null;
   subtotal: number;
-  tax: number;
   total: number;
   currency: string;
   status: InvoiceStatus;

@@ -20,6 +20,12 @@ export const POST = async (req: NextRequest) => {
 
   console.log(body);
 
+  // CALCULATE TAXED AMOUNT
+  const taxedAmount = items.reduce(
+    (acc, curr) => acc + Number(curr.subtotal) * (curr.tax / 100),
+    0,
+  );
+
   const formattedInvoice = {
     ...invoice,
     issueDate: new Date(invoice.issueDate),
@@ -32,14 +38,13 @@ export const POST = async (req: NextRequest) => {
     console.error("Invoice fields are Invalid");
     return NextResponse.json(
       { errors: invoiceParsed.error.flatten() },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   await db.invoice.create({
     data: {
       ...invoice,
-      cost: invoice.cost,
       type: "SALE",
       businessId: "123",
       items: { createMany: { data: items } },
@@ -64,7 +69,7 @@ export const POST = async (req: NextRequest) => {
             {
               chartAccountId: "cmhs7v4th000ci71lje7qgt0b",
               type: "CREDIT",
-              amount: Number(invoice.subtotal) * (Number(invoice.tax) / 100),
+              amount: taxedAmount,
               description: "",
             },
             {

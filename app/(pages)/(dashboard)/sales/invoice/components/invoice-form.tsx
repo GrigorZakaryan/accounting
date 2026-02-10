@@ -72,7 +72,6 @@ export const InvoiceForm = ({ customers }: { customers: Party[] }) => {
       issueDate: new Date(),
       dueDate: new Date(),
       description: "",
-      tax: 22,
       currency: "EUR",
       customerId: "",
     },
