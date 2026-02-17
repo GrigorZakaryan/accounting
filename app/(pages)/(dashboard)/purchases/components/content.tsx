@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCurrency } from "@/utils/currency";
+import { convertIntToDecimal, formatCurrency } from "@/utils/currency";
 import { Party } from "@/lib/generated/prisma";
 import { Invoice, Payment } from "@/types/purchases";
 import { format } from "date-fns";
@@ -130,7 +130,7 @@ export const PurchasesContent = ({
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      {isClient ? formatCurrency(Number(invoice.total)) : "-"}
+                      {isClient ? formatCurrency(invoice.total) : "-"}
                     </TableCell>
                     <TableCell className="text-right">
                       <MoreHorizontal className="w-4 h-4" />

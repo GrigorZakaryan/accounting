@@ -15,15 +15,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { db } from "@/lib/db";
-import { formatCurrency } from "@/utils/currency";
+import { convertIntToDecimal, formatCurrency } from "@/utils/currency";
 import { ChevronRight } from "lucide-react";
 import { Header } from "../../components/header";
 
 export default async function ChartAccountsPage() {
-  const assetLines = await db.jounralLine.findMany({
+  let assetLines = await db.jounralLine.findMany({
     where: { chartAccount: { type: "ASSET" } },
     orderBy: { chartAccountId: "asc" },
   });
+
+  assetLines = assetLines.map((line) => ({
+    ...line,
+    amount: convertIntToDecimal(line.amount),
+  }));
 
   const assets = await db.chartAccount.findMany({
     where: { type: "ASSET" },
@@ -36,7 +41,7 @@ export default async function ChartAccountsPage() {
       acc[item.chartAccountId].push(item);
       return acc;
     },
-    {}
+    {},
   );
 
   const totalAssets = assets.reduce((acc, curr) => {
@@ -54,10 +59,15 @@ export default async function ChartAccountsPage() {
 
   // Liabilities
 
-  const liabilityLines = await db.jounralLine.findMany({
+  let liabilityLines = await db.jounralLine.findMany({
     where: { chartAccount: { type: "LIABILITY" } },
     orderBy: { chartAccountId: "asc" },
   });
+
+  liabilityLines = liabilityLines.map((line) => ({
+    ...line,
+    amount: convertIntToDecimal(line.amount),
+  }));
 
   const liabilities = await db.chartAccount.findMany({
     where: { type: "LIABILITY" },
@@ -70,7 +80,7 @@ export default async function ChartAccountsPage() {
       acc[item.chartAccountId].push(item);
       return acc;
     },
-    {}
+    {},
   );
 
   const totalLiabilities = liabilities.reduce((acc, curr) => {
@@ -139,7 +149,7 @@ export default async function ChartAccountsPage() {
                                     return acc + curr.amount;
                                   }
                                   return acc - curr.amount;
-                                }, 0)
+                                }, 0),
                               )}
                             </span>
                           )}
@@ -200,7 +210,7 @@ export default async function ChartAccountsPage() {
                                     return acc + curr.amount;
                                   }
                                   return acc - curr.amount;
-                                }, 0)
+                                }, 0),
                               )}
                             </span>
                           )}

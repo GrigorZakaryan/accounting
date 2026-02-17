@@ -82,8 +82,8 @@ model Invoice {
   issueDate    DateTime @default(now())
   dueDate      DateTime?
   description  String?
-  subtotal     Decimal  @default(0)
-  total        Decimal  @default(0)
+  subtotal     Int  @default(0)
+  total        Int  @default(0)
   currency     String   @default("EUR")
   status       InvoiceStatus @default(PENDING)
 
@@ -106,12 +106,12 @@ model InvoiceItem {
   id           String          @id @default(cuid())
   description  String
   quantity     Int
-  unitPrice    Decimal
+  unitPrice    Int
   discount     Int
   tax          Int
   chartAccountId  String
-  subtotal     Decimal
-  total        Decimal
+  subtotal     Int
+  total        Int
   
   invoiceId    String
   invoice       Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
@@ -120,7 +120,7 @@ model InvoiceItem {
 model Payment {
   id          String   @id @default(cuid())
   date        DateTime
-  amount      Decimal
+  amount      Int
   method      String?
   note        String?
 
@@ -150,8 +150,8 @@ model JournalEntry {
   invoiceId   String?
   paymentId   String?
 
-  invoice     Invoice? @relation(fields: [invoiceId], references: [id])
-  payment     Payment? @relation(fields: [paymentId], references: [id])
+  invoice     Invoice? @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  payment     Payment? @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 
   journalLines  JounralLine[]
 }
@@ -160,10 +160,10 @@ model JounralLine {
   id              String   @id @default(cuid())
 
   jounralEntryId  String
-  journalEntry   JournalEntry @relation(fields: [jounralEntryId], references: [id])
+  journalEntry   JournalEntry @relation(fields: [jounralEntryId], references: [id], onDelete: Cascade)
 
   chartAccountId  String
-  chartAccount     ChartAccount @relation(fields: [chartAccountId], references: [id])
+  chartAccount     ChartAccount @relation(fields: [chartAccountId], references: [id], onDelete: Cascade)
 
   description     String
   amount          Int

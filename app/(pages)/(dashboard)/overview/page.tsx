@@ -1,9 +1,13 @@
 import { QuickActions } from "@/components/overview/quick-actions";
-import { RecentTransactions } from "@/components/overview/recent-transactions";
+import {
+  RecentTransactions,
+  RecentTransactionsMobile,
+} from "@/components/overview/recent-transactions";
 import { db } from "@/lib/db";
-import { formatCurrency } from "@/utils/currency";
-import { Landmark, ShoppingCart, Tag } from "lucide-react";
+import { convertIntToDecimal, formatCurrency } from "@/utils/currency";
+import { BellRing, Landmark, Menu, ShoppingCart, Tag } from "lucide-react";
 import { Header } from "../../components/header";
+import { QuickActionsMobile } from "./components/mobile-quick-actions";
 
 export default async function Page() {
   const journalEntries = await db.journalEntry.findMany({
@@ -22,21 +26,17 @@ export default async function Page() {
     }, 0) ?? 0;
 
   const purchases = await db.invoice.findMany({ where: { type: "PURCHASE" } });
-  const purchases_total = purchases.reduce(
-    (acc, curr) => Number(acc) + Number(curr.total),
-    0,
-  );
+  const purchases_total = purchases.reduce((acc, curr) => acc + curr.total, 0);
   const sales = await db.invoice.findMany({ where: { type: "SALE" } });
-  const sales_total = sales.reduce(
-    (acc, curr) => Number(acc) + Number(curr.total),
-    0,
-  );
+  const sales_total = sales.reduce((acc, curr) => acc + curr.total, 0);
 
   return (
-    <div className="bg-muted w-full h-full">
-      <Header links={[{ label: "Overview" }]} />
-      <main className="p-5 overflow-y-auto h-full pb-20">
-        <div className="flex items-center justify-between w-full">
+    <div className="w-full h-full bg-green-400 md:bg-muted">
+      <div className="hidden md:block">
+        <Header links={[{ label: "Overview" }]} />
+      </div>
+      <main className="md:p-5 overflow-y-auto h-full md:pb-20">
+        <div className="hidden md:flex items-center justify-between w-full">
           <div>
             <h1 className="text-2xl font-semibold">Overview</h1>
             <p className="text-sm text-muted-foreground">
@@ -44,7 +44,7 @@ export default async function Page() {
             </p>
           </div>
         </div>
-        <div className="flex justify-between items-center gap-2 lg:gap-5 w-full mt-3 lg:mt-0 max-w-full overflow-x-auto">
+        <div className="hidden md:flex justify-between items-center gap-2 lg:gap-5 w-full mt-3 lg:mt-0 max-w-full overflow-x-auto">
           <div className="border p-5 bg-blue-50 border-blue-300 text-blue-700 rounded-2xl w-full">
             <div className="flex items-start gap-4">
               <div className="p-3 rounded-full border border-blue-200 bg-blue-200">
@@ -53,7 +53,7 @@ export default async function Page() {
               <div className="flex flex-col gap-1">
                 <h3 className="">Bank Account</h3>
                 <span className="text-3xl font-semibold">
-                  {formatCurrency(bank)}
+                  {formatCurrency(convertIntToDecimal(bank))}
                 </span>
               </div>
             </div>
@@ -66,7 +66,7 @@ export default async function Page() {
               <div className="flex flex-col gap-1">
                 <h3 className="text-md ">Total Purchases</h3>
                 <span className="text-3xl font-semibold">
-                  {formatCurrency(purchases_total)}
+                  {formatCurrency(convertIntToDecimal(purchases_total))}
                 </span>
               </div>
             </div>
@@ -79,14 +79,44 @@ export default async function Page() {
               <div className="flex flex-col gap-1">
                 <h3 className="">Total Sales</h3>
                 <span className="text-3xl font-semibold">
-                  {formatCurrency(sales_total)}
+                  {formatCurrency(convertIntToDecimal(sales_total))}
                 </span>
               </div>
             </div>
           </div>
         </div>
-        <div>
-          <div className="mt-5 lg:mt-0">
+        <div className="md:hidden flex flex-col items-center justify-between min-h-[45dvh] bg-gradient-to-t from-green-400 via-green-200 to-white p-5 pb-16">
+          <div className="flex items-center justify-between w-full">
+            <div className="p-3 bg-white rounded-full border">
+              <Menu />
+            </div>
+            <p className="text-md text-green-800 text-center font-medium">
+              Bank Account
+            </p>
+            <div className="p-3 bg-white rounded-full border">
+              <BellRing />
+            </div>
+          </div>
+          <div>
+            <div className="flex flex-col items-center gap-3">
+              <h1 className="text-center font-bold text-green-950 text-5xl">
+                {formatCurrency(convertIntToDecimal(bank))}
+              </h1>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-white/70" />
+            <div className="w-3 h-3 rounded-full bg-white" />
+            <div className="w-2 h-2 rounded-full bg-white/70" />
+            <div className="w-2 h-2 rounded-full bg-white/70" />
+          </div>
+        </div>
+        <div className="w-full h-full fixed overflow-y-auto md:hidden bottom-0 max-h-[60dvh] bg-muted rounded-t-4xl p-5">
+          <QuickActionsMobile />
+          <RecentTransactionsMobile journalEntries={journalEntries} />
+        </div>
+        <div className="hidden md:block rounded-t-2xl w-full bg-muted">
+          <div className="hidden md:block mt-5 lg:mt-0">
             <h1 className="font-medium text-lg">Activity</h1>
             <p className="text-sm text-muted-foreground">
               View your recent activity.

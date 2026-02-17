@@ -2,6 +2,7 @@ import { BadgeEuro, ChevronRight, UserRoundPlus } from "lucide-react";
 import Link from "next/link";
 import { PaymentForm } from "./components/payment-form";
 import { db } from "@/lib/db";
+import { convertIntToDecimal } from "@/utils/currency";
 
 export default async function Payment() {
   const invoices = await db.invoice.findMany({
@@ -12,11 +13,11 @@ export default async function Payment() {
 
   const formattedInvoices = invoices.map((invoice) => ({
     ...invoice,
-    subtotal: Number(invoice.subtotal),
-    total: Number(invoice.total),
+    subtotal: convertIntToDecimal(invoice.subtotal),
+    total: convertIntToDecimal(invoice.total),
     payments: invoice.payments.map((payment) => ({
       ...payment,
-      amount: Number(payment.amount),
+      amount: convertIntToDecimal(payment.amount),
     })),
   }));
   return (

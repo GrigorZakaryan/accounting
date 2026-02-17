@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/utils/currency";
+import { convertIntToDecimal, formatCurrency } from "@/utils/currency";
 import { db } from "@/lib/db";
 import { Banknote, Clock, ClockArrowDown } from "lucide-react";
 import { PurchasesContent } from "./components/content";
@@ -17,19 +17,31 @@ export default async function PurchasesPage() {
   const formattedInvoices = invoices.map((invoice) => {
     return {
       ...invoice,
-      subtotal: Number(invoice.subtotal),
-      total: Number(invoice.total),
+      subtotal: convertIntToDecimal(invoice.subtotal),
+      total: convertIntToDecimal(invoice.total),
       payments: payments.map((payment) => ({
         ...payment,
-        amount: Number(payment.amount),
+        amount: convertIntToDecimal(payment.amount),
       })),
     };
   });
 
   const formattedPayments = payments.map((payment) => ({
     ...payment,
-    amount: Number(payment.amount),
+    amount: convertIntToDecimal(payment.amount),
   }));
+
+  const paid = invoices.reduce((acc, curr) => {
+    return acc + (curr.status === "PAID" ? Number(curr.total) : 0);
+  }, 0);
+
+  const pending = invoices.reduce((acc, curr) => {
+    return acc + (curr.status === "PENDING" ? Number(curr.total) : 0);
+  }, 0);
+
+  const overdue = invoices.reduce((acc, curr) => {
+    return acc + (curr.status === "OVERDUE" ? Number(curr.total) : 0);
+  }, 0);
 
   return (
     <div className="w-full h-full bg-muted">
@@ -57,13 +69,7 @@ export default async function PurchasesPage() {
               <div className="flex flex-col gap-1">
                 <h3 className="">Paid</h3>
                 <span className="text-3xl font-semibold">
-                  {formatCurrency(
-                    invoices.reduce((acc, curr) => {
-                      return (
-                        acc + (curr.status === "PAID" ? Number(curr.total) : 0)
-                      );
-                    }, 0),
-                  )}
+                  {formatCurrency(convertIntToDecimal(paid))}
                 </span>
               </div>
             </div>
@@ -76,14 +82,7 @@ export default async function PurchasesPage() {
               <div className="flex flex-col gap-1">
                 <h3 className="text-md ">Pending </h3>
                 <span className="text-3xl font-semibold">
-                  {formatCurrency(
-                    invoices.reduce((acc, curr) => {
-                      return (
-                        acc +
-                        (curr.status === "PENDING" ? Number(curr.total) : 0)
-                      );
-                    }, 0),
-                  )}
+                  {formatCurrency(convertIntToDecimal(pending))}
                 </span>
               </div>
             </div>
@@ -97,14 +96,7 @@ export default async function PurchasesPage() {
               <div className="flex flex-col gap-1">
                 <h3 className="">Overdue</h3>
                 <span className="text-3xl font-semibold">
-                  {formatCurrency(
-                    invoices.reduce((acc, curr) => {
-                      return (
-                        acc +
-                        (curr.status === "OVERDUE" ? Number(curr.total) : 0)
-                      );
-                    }, 0),
-                  )}
+                  {formatCurrency(convertIntToDecimal(overdue))}
                 </span>
               </div>
             </div>

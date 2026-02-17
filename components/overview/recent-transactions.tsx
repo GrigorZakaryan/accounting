@@ -57,3 +57,35 @@ export const RecentTransactions = ({
     </Card>
   );
 };
+
+export const RecentTransactionsMobile = ({
+  journalEntries,
+}: {
+  journalEntries: JournalEntry[];
+}) => {
+  return (
+    <div className="mt-10">
+      <h1 className="text-xl font-medium">Recent Transactions</h1>
+      <div className="flex flex-col items-center space-y-2 w-full text-black mt-5">
+        {journalEntries.map((entry, idx) => {
+          if (idx < 6) {
+            return (
+              <Link className="w-full" key={entry.id} href={"/journal-entries"}>
+                <div className="w-full py-5 px-3 hover:bg-muted cursor-pointer duration-200 bg-white rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="text-md font-medium">
+                      {entry.description ? entry.description : "-"}
+                    </span>
+                    <span className="text-md font-medium">
+                      {format(entry.date, "dd MMM yyyy")}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            );
+          }
+        })}
+      </div>
+    </div>
+  );
+};

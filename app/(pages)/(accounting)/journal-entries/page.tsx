@@ -1,7 +1,7 @@
-import { ChevronRight } from "lucide-react";
 import { JournalEntryContent } from "./components/content";
 import { db } from "@/lib/db";
 import { Header } from "../../components/header";
+import { convertIntToDecimal } from "@/utils/currency";
 
 export default async function ChartAccountsPage() {
   const journalEntries = await db.journalEntry.findMany({
@@ -11,6 +11,14 @@ export default async function ChartAccountsPage() {
       },
     },
   });
+
+  const formattedJournalEntries = journalEntries.map((entry) => ({
+    ...entry,
+    journalLines: entry.journalLines.map((line) => ({
+      ...line,
+      amount: convertIntToDecimal(line.amount),
+    })),
+  }));
   return (
     <div className="w-full h-full bg-muted">
       <Header
@@ -28,7 +36,7 @@ export default async function ChartAccountsPage() {
             </p>
           </div>
         </div>
-        <JournalEntryContent journalEntries={journalEntries} />
+        <JournalEntryContent journalEntries={formattedJournalEntries} />
       </div>
     </div>
   );

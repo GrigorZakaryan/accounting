@@ -41,6 +41,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ChartAccount } from "@/lib/generated/prisma";
 import { cn } from "@/lib/utils";
 import { inputJournalEntrySchema } from "@/schemas/journal-entry-schema";
+import { convertDecimalToInt } from "@/utils/currency";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 import {
@@ -52,7 +53,7 @@ import {
   Trash,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -68,6 +69,7 @@ export interface JournalLineType {
 export const JournalEntryForm = ({ CoAs }: { CoAs: ChartAccount[] }) => {
   const [loading, setLoading] = useState(false);
   const [dateOpen, setDateOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   const form = useForm<z.infer<typeof inputJournalEntrySchema>>({
     resolver: zodResolver(inputJournalEntrySchema),
@@ -78,7 +80,7 @@ export const JournalEntryForm = ({ CoAs }: { CoAs: ChartAccount[] }) => {
   });
   const [journalLines, setJournalLines] = useState([
     {
-      id: useId(),
+      id: crypto.randomUUID(),
       chartAccountId: "",
       description: "",
       type: "CREDIT",
@@ -86,7 +88,7 @@ export const JournalEntryForm = ({ CoAs }: { CoAs: ChartAccount[] }) => {
       open: false,
     },
     {
-      id: useId(),
+      id: crypto.randomUUID(),
       chartAccountId: "",
       description: "",
       type: "DEBIT",
@@ -95,10 +97,14 @@ export const JournalEntryForm = ({ CoAs }: { CoAs: ChartAccount[] }) => {
     },
   ]);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // use this to generate ids for new lines (no hooks inside handlers)
   const generateLineId = () => crypto?.randomUUID?.() ?? String(Date.now());
 
-  // add a new line — use functional state update and generate id without useId()
+  // add a new line — use functional state update and generate id without crypto.randomUUID()
   const addJournalLine = () => {
     const newLine = {
       id: generateLineId(),
@@ -123,7 +129,7 @@ export const JournalEntryForm = ({ CoAs }: { CoAs: ChartAccount[] }) => {
   // toggle popover — functional update to avoid stale closures
   const toggleLinePopover = ({ id, value }: { id: string; value: boolean }) => {
     setJournalLines((prev) =>
-      prev.map((line) => (line.id === id ? { ...line, open: value } : line))
+      prev.map((line) => (line.id === id ? { ...line, open: value } : line)),
     );
   };
 
@@ -140,20 +146,20 @@ export const JournalEntryForm = ({ CoAs }: { CoAs: ChartAccount[] }) => {
     field: keyof JournalLineType;
   }) => {
     setJournalLines((prev) =>
-      prev.map((line) => (line.id === id ? { ...line, [field]: value } : line))
+      prev.map((line) => (line.id === id ? { ...line, [field]: value } : line)),
     );
   };
 
   const onSubmit = async (values: z.infer<typeof inputJournalEntrySchema>) => {
     try {
       setLoading(true);
-      const res = await axios.post("/journal-entries/create/api", {
+      await axios.post("/journal-entries/create/api", {
         ...values,
         journalLines: journalLines.map((line) => ({
           chartAccountId: line.chartAccountId,
           description: line.description,
           type: line.type,
-          amount: line.amount,
+          amount: convertDecimalToInt(line.amount),
         })),
       });
       toast.success("Journal Entry created successfully!");
@@ -191,9 +197,11 @@ export const JournalEntryForm = ({ CoAs }: { CoAs: ChartAccount[] }) => {
                               id="date"
                               className="w-full justify-between font-normal"
                             >
-                              {field.value
-                                ? field.value.toLocaleDateString()
-                                : "Select date"}
+                              {mounted
+                                ? field.value
+                                  ? field.value.toLocaleDateString()
+                                  : "Select date"
+                                : "-"}
                               <ChevronDownIcon />
                             </Button>
                           </PopoverTrigger>
@@ -238,7 +246,7 @@ export const JournalEntryForm = ({ CoAs }: { CoAs: ChartAccount[] }) => {
               <div className="mt-5">
                 <div className="flex items-center justify-between w-full">
                   <h2 className="font-medium">Journal Lines</h2>
-                  <Button onClick={() => addJournalLine()}>
+                  <Button type="button" onClick={() => addJournalLine()}>
                     <Plus /> Add Line
                   </Button>
                 </div>
@@ -265,13 +273,13 @@ export const JournalEntryForm = ({ CoAs }: { CoAs: ChartAccount[] }) => {
                               <>
                                 {
                                   CoAs.find(
-                                    (CoA) => CoA.id === line.chartAccountId
+                                    (CoA) => CoA.id === line.chartAccountId,
                                   )?.code
                                 }{" "}
                                 |{" "}
                                 {
                                   CoAs.find(
-                                    (CoA) => CoA.id === line.chartAccountId
+                                    (CoA) => CoA.id === line.chartAccountId,
                                   )?.name
                                 }
                               </>
@@ -308,7 +316,7 @@ export const JournalEntryForm = ({ CoAs }: { CoAs: ChartAccount[] }) => {
                                         "mr-2 h-4 w-4",
                                         line.chartAccountId === CoA.id
                                           ? "opacity-100"
-                                          : "opacity-0"
+                                          : "opacity-0",
                                       )}
                                     />
                                     {CoA.code} | {CoA.name}
@@ -320,6 +328,7 @@ export const JournalEntryForm = ({ CoAs }: { CoAs: ChartAccount[] }) => {
                         </PopoverContent>
                       </Popover>
                       <Input
+                        step={"0.01"}
                         className="bg-white"
                         value={line.amount}
                         onChange={(e) =>
@@ -370,7 +379,7 @@ export const JournalEntryForm = ({ CoAs }: { CoAs: ChartAccount[] }) => {
             </CardContent>
           </Card>
           <div className="flex justify-end w-full mt-5 gap-2">
-            <Button variant={"outline"} type="submit">
+            <Button variant={"outline"} type="reset">
               Cancel
             </Button>
             <Button type="submit">

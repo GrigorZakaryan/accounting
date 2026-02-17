@@ -1,10 +1,13 @@
 import { db } from "@/lib/db";
+import { convertDecimalToInt } from "@/utils/currency";
 import { NextRequest, NextResponse } from "next/server";
 
 export const POST = async (req: NextRequest) => {
   try {
     const body = await req.json();
-    const { amount, date, notes, invoiceId } = body;
+    let { amount, date, notes, invoiceId } = body;
+
+    amount = convertDecimalToInt(amount);
 
     // Basic validation
     if (!invoiceId)

@@ -54,6 +54,7 @@ import {
 } from "@/components/ui/command";
 import { CommandList } from "cmdk";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface InvoiceItem {
   id: string;
@@ -109,7 +110,9 @@ export const InvoiceForm = ({
   });
 
   const calculateSubtotal = () => {
-    return invoiceItems.reduce((acc, item) => acc + item.subtotal, 0);
+    return Number(
+      invoiceItems.reduce((acc, item) => acc + item.subtotal, 0).toFixed(2),
+    );
   };
 
   const calculateTax = () => {
@@ -120,7 +123,7 @@ export const InvoiceForm = ({
   };
 
   const calculateTotal = () => {
-    return calculateSubtotal() + calculateTax();
+    return Number((calculateSubtotal() + calculateTax()).toFixed(2));
   };
 
   const addItem = () => {
@@ -184,19 +187,27 @@ export const InvoiceForm = ({
   const onSubmit = async (
     invoiceData: z.infer<typeof inputPurchaseInvoiceSchema>,
   ) => {
-    setLoading(true);
-    await axios.post("/purchases/api", {
-      invoice: {
-        ...invoiceData,
-        businessId: "123",
-        subtotal: calculateSubtotal(),
-        total: calculateTotal(),
-      },
-      items: invoiceItems,
-      payments: [],
-    });
-    setLoading(false);
-    redirect("/purchases");
+    try {
+      setLoading(true);
+      await axios.post("/purchases/api", {
+        invoice: {
+          ...invoiceData,
+          businessId: "123",
+          subtotal: calculateSubtotal(),
+          total: calculateTotal(),
+        },
+        items: invoiceItems,
+        payments: [],
+      });
+      setLoading(false);
+      toast.success("Invoice created succesfully!");
+      redirect("/purchases");
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -519,9 +530,10 @@ export const InvoiceForm = ({
                             Subtotal
                           </label>
                           <Input
+                            step={"0.01"}
                             disabled={loading}
                             onChange={() => {}}
-                            value={item.subtotal}
+                            value={item.subtotal.toFixed(2)}
                             type="number"
                             className="bg-white cursor-not-allowed"
                             id={`${idx}-item-total`}
@@ -539,9 +551,10 @@ export const InvoiceForm = ({
                             </span>
                           </label>
                           <Input
+                            step={"0.01"}
                             disabled={loading}
                             onChange={() => {}}
-                            value={item.total}
+                            value={item.total.toFixed(2)}
                             type="number"
                             className="bg-white cursor-not-allowed"
                             id={`${idx}-item-total`}
