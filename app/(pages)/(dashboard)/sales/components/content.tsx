@@ -29,7 +29,7 @@ export const SalesContent = ({
   payments: Payment[];
 }) => {
   const [tab, setTab] = useState<"invoices" | "customers" | "payments">(
-    "invoices"
+    "invoices",
   );
   const [isClient, setIsClient] = useState(false);
   useEffect(() => setIsClient(true), []);
@@ -98,7 +98,7 @@ export const SalesContent = ({
                 {invoices.map((invoice) => (
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium">
-                      {invoice.number}
+                      INV-{invoice.number}
                     </TableCell>
                     <TableCell>{invoice.customer?.legalName}</TableCell>
                     <TableCell>
@@ -238,7 +238,7 @@ export const SalesContent = ({
                     <TableCell>
                       {
                         invoices.find(
-                          (invoice) => invoice.id === payment.invoiceId
+                          (invoice) => invoice.id === payment.invoiceId,
                         )?.number
                       }
                     </TableCell>

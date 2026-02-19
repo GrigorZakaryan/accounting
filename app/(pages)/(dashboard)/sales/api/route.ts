@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { Invoice, InvoiceItem, Party, Payment } from "@/lib/generated/prisma";
 import { fullSaleInvoiceSchema } from "@/schemas/invoice-schema";
+import { convertDecimalToInt } from "@/utils/currency";
 import { NextRequest, NextResponse } from "next/server";
 
 export const POST = async (req: NextRequest) => {
@@ -41,22 +42,24 @@ export const POST = async (req: NextRequest) => {
     );
   }
 
-  await db.invoice.create({
+  const createdInvoice = await db.invoice.create({
     data: {
       ...invoice,
       type: "SALE",
       businessId: "123",
+      total: convertDecimalToInt(Number(invoice.total)),
+      subtotal: convertDecimalToInt(Number(invoice.subtotal)),
       items: {
         createMany: {
           data: items.map((item) => ({
             description: item.description,
-            total: item.total,
-            subtotal: item.subtotal,
-            quantity: item.quantity,
-            discount: item.discount,
+            total: convertDecimalToInt(item.total),
+            subtotal: convertDecimalToInt(item.subtotal),
+            quantity: Number(item.quantity),
+            discount: Number(item.discount),
             tax: Number(item.tax),
             chartAccountId: item.chartAccountId,
-            unitPrice: item.unitPrice,
+            unitPrice: convertDecimalToInt(item.unitPrice),
           })),
         },
       },
@@ -86,22 +89,22 @@ export const POST = async (req: NextRequest) => {
     {
       chartAccountId: taxCoA.id,
       type: "CREDIT" as const,
-      amount: taxedAmount,
+      amount: convertDecimalToInt(taxedAmount),
       description: "",
     },
     {
       chartAccountId: creditsCoA.id,
       type: "DEBIT" as const,
-      amount: Number(invoice.total),
+      amount: convertDecimalToInt(Number(invoice.total)),
       description: "",
     },
   ];
 
   await db.journalEntry.create({
     data: {
-      date: new Date(invoice.issueDate),
-      description: `Sale Invoice: ${invoice.number}`,
-      invoiceId: invoice.id,
+      date: new Date(createdInvoice.issueDate),
+      description: `Sale Invoice: INV-${createdInvoice.number}`,
+      invoiceId: createdInvoice.id,
       journalLines: {
         createMany: {
           data: lines,

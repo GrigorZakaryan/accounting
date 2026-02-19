@@ -42,7 +42,7 @@ import { useForm } from "react-hook-form";
 import z from "zod";
 
 import axios from "axios";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { ChartAccount, Party } from "@/lib/generated/prisma";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -79,6 +79,7 @@ export const InvoiceForm = ({
   const [issueDateOpen, issueDateSetOpen] = useState(false);
   const [dueDateOpen, dueDateSetOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -201,7 +202,7 @@ export const InvoiceForm = ({
       });
       setLoading(false);
       toast.success("Invoice created succesfully!");
-      redirect("/purchases");
+      router.push("/purchases");
     } catch (err) {
       console.error(err);
       toast.error("Something went wrong!");
@@ -481,6 +482,7 @@ export const InvoiceForm = ({
                             Unit Price
                           </label>
                           <Input
+                            step={"0.01"}
                             disabled={loading}
                             onChange={(e) =>
                               updateItem({
@@ -580,7 +582,10 @@ export const InvoiceForm = ({
                               })
                             }
                           >
-                            <SelectTrigger className="min-w-[200px] bg-white cursor-pointer">
+                            <SelectTrigger
+                              disabled={loading}
+                              className="min-w-[200px] bg-white cursor-pointer"
+                            >
                               <SelectValue placeholder="Tax" />
                             </SelectTrigger>
                             <SelectContent>
@@ -606,8 +611,9 @@ export const InvoiceForm = ({
                             Account
                           </label>
                           <Popover>
-                            <PopoverTrigger asChild>
+                            <PopoverTrigger disabled={loading} asChild>
                               <Button
+                                disabled={loading}
                                 variant="outline"
                                 role="combobox"
                                 className="w-[300px] justify-between"

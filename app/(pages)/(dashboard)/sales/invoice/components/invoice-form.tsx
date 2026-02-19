@@ -42,7 +42,7 @@ import { useForm } from "react-hook-form";
 import z from "zod";
 
 import axios from "axios";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { ChartAccount, Party } from "@/lib/generated/prisma";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -54,6 +54,7 @@ import {
 } from "@/components/ui/command";
 import { CommandList } from "cmdk";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface InvoiceItem {
   id: string;
@@ -78,6 +79,7 @@ export const InvoiceForm = ({
   const [issueDateOpen, issueDateSetOpen] = useState(false);
   const [dueDateOpen, dueDateSetOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -109,7 +111,9 @@ export const InvoiceForm = ({
   });
 
   const calculateSubtotal = () => {
-    return invoiceItems.reduce((acc, item) => acc + item.subtotal, 0);
+    return Number(
+      invoiceItems.reduce((acc, item) => acc + item.subtotal, 0).toFixed(2),
+    );
   };
 
   const calculateTax = () => {
@@ -120,7 +124,7 @@ export const InvoiceForm = ({
   };
 
   const calculateTotal = () => {
-    return calculateSubtotal() + calculateTax();
+    return Number((calculateSubtotal() + calculateTax()).toFixed(2));
   };
 
   const addItem = () => {
@@ -184,19 +188,26 @@ export const InvoiceForm = ({
   const onSubmit = async (
     invoiceData: z.infer<typeof inputSaleInvoiceSchema>,
   ) => {
-    setLoading(true);
-    await axios.post("/sales/api", {
-      invoice: {
-        ...invoiceData,
-        businessId: "123",
-        subtotal: calculateSubtotal(),
-        total: calculateTotal(),
-      },
-      items: invoiceItems,
-      payments: [],
-    });
-    setLoading(false);
-    redirect("/sales");
+    try {
+      setLoading(true);
+      await axios.post("/sales/api", {
+        invoice: {
+          ...invoiceData,
+          businessId: "123",
+          subtotal: calculateSubtotal(),
+          total: calculateTotal(),
+        },
+        items: invoiceItems,
+        payments: [],
+      });
+      toast.success("Invoice created successfully!");
+      router.push("/sales");
+    } catch (err) {
+      toast.error("Something went wrong!");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -470,6 +481,7 @@ export const InvoiceForm = ({
                             Unit Price
                           </label>
                           <Input
+                            step={"0.01"}
                             disabled={loading}
                             onChange={(e) =>
                               updateItem({
@@ -519,9 +531,10 @@ export const InvoiceForm = ({
                             Subtotal
                           </label>
                           <Input
+                            step={"0.01"}
                             disabled={loading}
                             onChange={() => {}}
-                            value={item.subtotal}
+                            value={item.subtotal.toFixed(2)}
                             type="number"
                             className="bg-white cursor-not-allowed"
                             id={`${idx}-item-total`}
@@ -539,9 +552,10 @@ export const InvoiceForm = ({
                             </span>
                           </label>
                           <Input
+                            step={"0.01"}
                             disabled={loading}
                             onChange={() => {}}
-                            value={item.total}
+                            value={item.total.toFixed(2)}
                             type="number"
                             className="bg-white cursor-not-allowed"
                             id={`${idx}-item-total`}
@@ -567,7 +581,10 @@ export const InvoiceForm = ({
                               })
                             }
                           >
-                            <SelectTrigger className="min-w-[200px] bg-white cursor-pointer">
+                            <SelectTrigger
+                              disabled={loading}
+                              className="min-w-[200px] bg-white cursor-pointer"
+                            >
                               <SelectValue placeholder="Tax" />
                             </SelectTrigger>
                             <SelectContent>
@@ -593,8 +610,9 @@ export const InvoiceForm = ({
                             Account
                           </label>
                           <Popover>
-                            <PopoverTrigger asChild>
+                            <PopoverTrigger disabled={loading} asChild>
                               <Button
+                                disabled={loading}
                                 variant="outline"
                                 role="combobox"
                                 className="w-[300px] justify-between"

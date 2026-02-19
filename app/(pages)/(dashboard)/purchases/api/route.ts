@@ -44,7 +44,7 @@ export const POST = async (req: NextRequest) => {
   }
 
   // CREATE THE INVOICE
-  await db.invoice.create({
+  const createdInvoice = await db.invoice.create({
     data: {
       ...invoice,
       type: "PURCHASE",
@@ -104,9 +104,9 @@ export const POST = async (req: NextRequest) => {
 
   await db.journalEntry.create({
     data: {
-      date: new Date(invoice.issueDate),
-      description: `Purchase Invoice: INV-${invoice.number}`,
-      invoiceId: invoice.id,
+      date: new Date(createdInvoice.issueDate),
+      description: `Purchase Invoice: INV-${createdInvoice.number}`,
+      invoiceId: createdInvoice.id,
       journalLines: {
         createMany: {
           data: lines,

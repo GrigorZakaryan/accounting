@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/utils/currency";
+import { convertIntToDecimal, formatCurrency } from "@/utils/currency";
 import { db } from "@/lib/db";
 import { Banknote, Clock, ClockArrowDown } from "lucide-react";
 import { SalesContent } from "./components/content";
@@ -12,11 +12,11 @@ export default async function PurchasesPage() {
 
   const formattedInvoices = invoices.map((invoice) => ({
     ...invoice,
-    subtotal: Number(invoice.subtotal),
-    total: Number(invoice.total),
+    subtotal: convertIntToDecimal(Number(invoice.subtotal)),
+    total: convertIntToDecimal(Number(invoice.total)),
     payments: invoice.payments.map((payment) => ({
       ...payment,
-      amount: Number(payment.amount),
+      amount: convertIntToDecimal(Number(payment.amount)),
     })),
   }));
 
@@ -24,7 +24,7 @@ export default async function PurchasesPage() {
 
   const formattedPayments = payments.map((payment) => ({
     ...payment,
-    amount: Number(payment.amount),
+    amount: convertIntToDecimal(Number(payment.amount)),
   }));
 
   const customers = await db.party.findMany({ where: { type: "CUSTOMER" } });
@@ -55,7 +55,10 @@ export default async function PurchasesPage() {
                   {formatCurrency(
                     invoices.reduce((acc, curr) => {
                       return (
-                        acc + (curr.status === "PAID" ? Number(curr.total) : 0)
+                        acc +
+                        (curr.status === "PAID"
+                          ? convertIntToDecimal(Number(curr.total))
+                          : 0)
                       );
                     }, 0),
                   )}
@@ -80,7 +83,9 @@ export default async function PurchasesPage() {
                     invoices.reduce((acc, curr) => {
                       return (
                         acc +
-                        (curr.status === "PENDING" ? Number(curr.total) : 0)
+                        (curr.status === "PENDING"
+                          ? convertIntToDecimal(Number(curr.total))
+                          : 0)
                       );
                     }, 0),
                   )}

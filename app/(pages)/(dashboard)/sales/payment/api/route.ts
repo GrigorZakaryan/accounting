@@ -1,10 +1,13 @@
 import { db } from "@/lib/db";
+import { convertDecimalToInt } from "@/utils/currency";
 import { NextRequest, NextResponse } from "next/server";
 
 export const POST = async (req: NextRequest) => {
   try {
     const body = await req.json();
-    const { amount, date, notes, invoiceId } = body;
+    let { amount, date, notes, invoiceId } = body;
+
+    amount = convertDecimalToInt(amount);
 
     // Basic validation
     if (!invoiceId)
@@ -48,7 +51,7 @@ export const POST = async (req: NextRequest) => {
       });
     }
     // If it's already paid, no more payments allowed
-    if (Math.abs(totalPaid - Number(existingInvoice.total)) < 0.01) {
+    if (Math.abs(totalPaid - Number(existingInvoice.total)) <= 0.0) {
       if (existingInvoice.status !== "PAID") {
         await db.invoice.update({
           where: { id: existingInvoice.id },
@@ -76,29 +79,29 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
+    const creditsCoA = await db.chartAccount.findUnique({
+      where: { code: "05.01" },
+    });
+
+    const banck_account = await db.chartAccount.findUnique({
+      where: { code: "08.01" },
+    });
+
+    if (!creditsCoA || !banck_account) {
+      return new NextResponse("CoAs not found!", { status: 500 });
+    }
+
     // If invoice is now fully paid, mark it as PAID
-    if (Math.abs(updatedTotal - Number(existingInvoice.total)) < 0.01) {
+    if (Math.abs(updatedTotal - Number(existingInvoice.total)) <= 0.0) {
       await db.invoice.update({
         where: { id: existingInvoice.id },
         data: { status: "PAID" },
       });
 
-      const creditsCoA = await db.chartAccount.findUnique({
-        where: { code: "05.01" },
-      });
-
-      const banck_account = await db.chartAccount.findUnique({
-        where: { code: "08.01" },
-      });
-
-      if (!creditsCoA || !banck_account) {
-        return new NextResponse("CoAs not found!", { status: 500 });
-      }
-
       await db.journalEntry.create({
         data: {
           date: new Date(payment.date),
-          description: `Sale Payement for ${existingInvoice.number}`,
+          description: `Sale Payement for INV-${existingInvoice.number}`,
           paymentId: payment.id,
           journalLines: {
             createMany: {
@@ -130,19 +133,19 @@ export const POST = async (req: NextRequest) => {
     await db.journalEntry.create({
       data: {
         date: new Date(payment.date),
-        description: `Sale Payement for ${existingInvoice.number}`,
+        description: `Sale Payement for INV-${existingInvoice.number}`,
         paymentId: payment.id,
         journalLines: {
           createMany: {
             data: [
               {
-                chartAccountId: "cmhs7s5ck0009i71lpauowi5u",
+                chartAccountId: creditsCoA.id,
                 type: "CREDIT",
                 amount: Number(payment.amount),
                 description: "",
               },
               {
-                chartAccountId: "cmhs7o2lv0002i71lewufcb3c",
+                chartAccountId: banck_account.id,
                 type: "DEBIT",
                 amount: Number(payment.amount),
                 description: "",

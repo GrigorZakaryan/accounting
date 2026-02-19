@@ -2,6 +2,7 @@ import { ChevronRight, CreditCard, FileText } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { PaymentForm } from "./components/payment-form";
+import { convertIntToDecimal } from "@/utils/currency";
 
 export default async function SalePaymentPage() {
   const invoices = await db.invoice.findMany({
@@ -11,11 +12,11 @@ export default async function SalePaymentPage() {
 
   const formattedInvoices = invoices.map((invoice) => ({
     ...invoice,
-    subtotal: Number(invoice.subtotal),
-    total: Number(invoice.total),
+    subtotal: convertIntToDecimal(Number(invoice.subtotal)),
+    total: convertIntToDecimal(Number(invoice.total)),
     payments: invoice.payments.map((payment) => ({
       ...payment,
-      amount: Number(payment.amount),
+      amount: convertIntToDecimal(Number(payment.amount)),
     })),
   }));
   return (

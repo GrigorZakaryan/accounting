@@ -197,6 +197,7 @@ export const PaymentForm = ({ invoices }: { invoices: Invoice[] }) => {
                               <FormLabel>Amount</FormLabel>
                               <FormControl>
                                 <Input
+                                  step={0.01}
                                   disabled={loading}
                                   className="w-full"
                                   type="number"
@@ -204,7 +205,7 @@ export const PaymentForm = ({ invoices }: { invoices: Invoice[] }) => {
                                   onChange={(e) =>
                                     form.setValue(
                                       "amount",
-                                      Number(e.target.value)
+                                      Number(e.target.value),
                                     )
                                   }
                                   placeholder="0,00"
@@ -419,8 +420,8 @@ export const PaymentForm = ({ invoices }: { invoices: Invoice[] }) => {
                                   selectedInvoice.payments?.reduce(
                                     (acc, payment) =>
                                       acc + Number(payment.amount),
-                                    0
-                                  ) ?? 0
+                                    0,
+                                  ) ?? 0,
                                 )}
                               </span>
                             </div>
@@ -435,8 +436,8 @@ export const PaymentForm = ({ invoices }: { invoices: Invoice[] }) => {
                                     (selectedInvoice.payments?.reduce(
                                       (acc, payment) =>
                                         acc + Number(payment.amount),
-                                      0
-                                    ) ?? 0)
+                                      0,
+                                    ) ?? 0),
                                 )}
                               </span>
                             </div>
@@ -499,7 +500,7 @@ export const PaymentForm = ({ invoices }: { invoices: Invoice[] }) => {
                                 {
                                   invoices.find(
                                     (invoice) =>
-                                      invoice.id === payment.invoiceId
+                                      invoice.id === payment.invoiceId,
                                   )?.number
                                 }
                               </TableCell>

@@ -50,7 +50,7 @@ export const POST = async (req: NextRequest) => {
         status: 400,
       });
     }
-    if (Math.abs(totalPaid - Number(existingInvoice.total)) < 0.01) {
+    if (Math.abs(totalPaid - Number(existingInvoice.total)) <= 0.0) {
       // If it's already paid, no more payments allowed
       if (existingInvoice.status !== "PAID") {
         await db.invoice.update({
@@ -72,8 +72,20 @@ export const POST = async (req: NextRequest) => {
     // Update total payments directly
     const updatedTotal = totalPaid + Number(amount);
 
+    const debtsCoA = await db.chartAccount.findUnique({
+      where: { code: "14.01" },
+    });
+
+    const banck_account = await db.chartAccount.findUnique({
+      where: { code: "08.01" },
+    });
+
+    if (!debtsCoA || !banck_account) {
+      return new NextResponse("CoAs not found!", { status: 500 });
+    }
+
     // If invoice is now fully paid, mark it as PAID
-    if (Math.abs(updatedTotal - Number(existingInvoice.total)) < 0.01) {
+    if (Math.abs(updatedTotal - Number(existingInvoice.total)) <= 0.0) {
       await db.invoice.update({
         where: { id: existingInvoice.id },
         data: { status: "PAID" },
@@ -88,13 +100,13 @@ export const POST = async (req: NextRequest) => {
             createMany: {
               data: [
                 {
-                  chartAccountId: "cmhs7s5ck0009i71lpauowi5u",
+                  chartAccountId: debtsCoA.id,
                   type: "DEBIT",
                   amount: Number(payment.amount),
                   description: "",
                 },
                 {
-                  chartAccountId: "cmhs7o2lv0002i71lewufcb3c",
+                  chartAccountId: banck_account.id,
                   type: "CREDIT",
                   amount: Number(payment.amount),
                   description: "",
@@ -111,22 +123,10 @@ export const POST = async (req: NextRequest) => {
       });
     }
 
-    const debtsCoA = await db.chartAccount.findUnique({
-      where: { code: "14.01" },
-    });
-
-    const banck_account = await db.chartAccount.findUnique({
-      where: { code: "08.01" },
-    });
-
-    if (!debtsCoA || !banck_account) {
-      return new NextResponse("CoAs not found!", { status: 500 });
-    }
-
     await db.journalEntry.create({
       data: {
         date: new Date(payment.date),
-        description: `Purchase Payement for ${existingInvoice.number}`,
+        description: `Purchase Payement for INV-${existingInvoice.number}`,
         paymentId: payment.id,
         journalLines: {
           createMany: {
