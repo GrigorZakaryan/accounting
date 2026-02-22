@@ -15,9 +15,29 @@ import { convertIntToDecimal, formatCurrency } from "@/utils/currency";
 import { Party } from "@/lib/generated/prisma";
 import { Invoice, Payment } from "@/types/purchases";
 import { format } from "date-fns";
-import { MoreHorizontal, Plus } from "lucide-react";
+import {
+  Download,
+  MoreHorizontal,
+  Plus,
+  Printer,
+  Receipt,
+  ReceiptText,
+  Trash,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import axios from "axios";
+import { toast } from "sonner";
 
 export const PurchasesContent = ({
   invoices,
@@ -33,6 +53,41 @@ export const PurchasesContent = ({
   );
   const [isClient, setIsClient] = useState(false);
   useEffect(() => setIsClient(true), []);
+
+  const onDownloadPDF = async (id: string) => {
+    try {
+      toast.message("Generating PDF...");
+
+      const response = await axios.post(
+        "/purchases/pdf/api",
+        { id },
+        {
+          responseType: "blob", // VERY IMPORTANT
+        },
+      );
+
+      const blob = new Blob([response.data], {
+        type: "application/pdf",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "invoice.pdf";
+      document.body.appendChild(a);
+      a.click();
+
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success("PDF downloaded");
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong!");
+    }
+  };
+
   return (
     <>
       <div className="w-full border-b mt-10">
@@ -133,7 +188,24 @@ export const PurchasesContent = ({
                       {isClient ? formatCurrency(invoice.total) : "-"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <MoreHorizontal className="w-4 h-4" />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger>
+                          <MoreHorizontal className="w-4 h-4 cursor-pointer" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align={"end"}>
+                          <DropdownMenuGroup>
+                            <DropdownMenuItem
+                              onClick={() => onDownloadPDF(invoice.id)}
+                            >
+                              <Download />
+                              Download PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem variant="destructive">
+                              <Trash /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
