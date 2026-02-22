@@ -1,7 +1,8 @@
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
-import { chromium } from "playwright";
+import { chromium } from "playwright-core";
+import chromiumBinary from "@sparticuz/chromium";
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,7 +10,9 @@ export async function POST(req: NextRequest) {
     const { id } = body;
 
     const browser = await chromium.launch({
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+      args: chromiumBinary.args,
+      executablePath: await chromiumBinary.executablePath(),
+      headless: true,
     });
 
     const page = await browser.newPage();
