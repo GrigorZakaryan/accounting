@@ -33,6 +33,8 @@ export async function POST(req: NextRequest) {
       ? `https://${process.env.VERCEL_URL}`
       : "http://localhost:3000";
 
+    console.log(`${baseUrl}/purchases/pdf/${id}`);
+
     await page.goto(`${baseUrl}/purchases/pdf/${id}`, {
       waitUntil: "networkidle",
     });
