@@ -1,4 +1,9 @@
-import { InvoiceStatus, InvoiceType, Party } from "@/lib/generated/prisma";
+import {
+  InvoiceItem,
+  InvoiceStatus,
+  InvoiceType,
+  Party,
+} from "@/lib/generated/prisma";
 
 export interface Payment {
   amount: number;
@@ -28,4 +33,6 @@ export interface Invoice {
   customer?: Party | null;
   vendor?: Party | null;
   payments?: Payment[] | null;
+
+  items?: InvoiceItem[];
 }

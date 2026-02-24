@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import axios from "axios";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export const PurchasesContent = ({
   invoices,
@@ -53,6 +54,8 @@ export const PurchasesContent = ({
   );
   const [isClient, setIsClient] = useState(false);
   useEffect(() => setIsClient(true), []);
+
+  const router = useRouter();
 
   const onDownloadPDF = async (id: string) => {
     try {
@@ -195,7 +198,13 @@ export const PurchasesContent = ({
                         <DropdownMenuContent align={"end"}>
                           <DropdownMenuGroup>
                             <DropdownMenuItem
-                              onClick={() => onDownloadPDF(invoice.id)}
+                              onClick={() =>
+                                window.open(
+                                  `/purchases/invoice/${invoice.id}`,
+                                  "_blank",
+                                  "noopener,noreferrer",
+                                )
+                              }
                             >
                               <Download />
                               Download PDF
