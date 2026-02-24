@@ -9,15 +9,31 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { id } = body;
 
-    const browser = await chromium.launch({
-      args: chromiumBinary.args,
-      executablePath: await chromiumBinary.executablePath(),
-      headless: true,
-    });
+    const isProd = !!process.env.VERCEL_URL;
+
+    const browser = await chromium.launch(
+      isProd
+        ? {
+            args: [
+              ...chromiumBinary.args,
+              "--no-sandbox",
+              "--disable-setuid-sandbox",
+            ],
+            executablePath: await chromiumBinary.executablePath(),
+            headless: true,
+          }
+        : {
+            headless: true,
+          },
+    );
 
     const page = await browser.newPage();
 
-    await page.goto(`localhost:3000/purchases/pdf/${id}`, {
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : "http://localhost:3000";
+
+    await page.goto(`${baseUrl}/purchases/pdf/${id}`, {
       waitUntil: "networkidle",
     });
 
@@ -35,9 +51,7 @@ export async function POST(req: NextRequest) {
       },
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: "PDF generation failed" },
-      { status: 500 },
-    );
+    console.error(error);
+    return NextResponse.json({ error: error }, { status: 500 });
   }
 }
