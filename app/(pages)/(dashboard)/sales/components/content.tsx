@@ -15,9 +15,16 @@ import { formatCurrency } from "@/utils/currency";
 import { Party } from "@/lib/generated/prisma";
 import { Invoice, Payment } from "@/types/purchases";
 import { format } from "date-fns";
-import { MoreHorizontal, Plus } from "lucide-react";
+import { Download, MoreHorizontal, Plus, Trash } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const SalesContent = ({
   invoices,
@@ -133,7 +140,30 @@ export const SalesContent = ({
                       {isClient ? formatCurrency(Number(invoice.total)) : "-"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <MoreHorizontal className="w-4 h-4" />
+                      <DropdownMenu>
+                        <DropdownMenuTrigger>
+                          <MoreHorizontal className="w-4 h-4 cursor-pointer" />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align={"end"}>
+                          <DropdownMenuGroup>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                window.open(
+                                  `/pdf/sales/${invoice.id}`,
+                                  "_blank",
+                                  "noopener,noreferrer",
+                                )
+                              }
+                            >
+                              <Download />
+                              Download PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem variant="destructive">
+                              <Trash /> Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuGroup>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}

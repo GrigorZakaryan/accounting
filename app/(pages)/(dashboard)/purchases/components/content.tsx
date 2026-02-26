@@ -32,8 +32,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import axios from "axios";
@@ -200,7 +198,7 @@ export const PurchasesContent = ({
                             <DropdownMenuItem
                               onClick={() =>
                                 window.open(
-                                  `/purchases/invoice/${invoice.id}`,
+                                  `/pdf/purchases/${invoice.id}`,
                                   "_blank",
                                   "noopener,noreferrer",
                                 )

@@ -1,7 +1,7 @@
 "use client";
 import { Business } from "@/lib/generated/prisma";
 import { PDFViewer } from "@react-pdf/renderer";
-import { InvoicePDFTemplate } from "../../../components/invoice-pdf";
+import { InvoicePDFTemplate } from "./invoice-pdf";
 import { Invoice } from "@/types/purchases";
 
 export const InvoicePDFContent = ({

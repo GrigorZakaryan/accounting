@@ -12,7 +12,7 @@ export default async function InvoicePDFPage({
 
   const invoice = await db.invoice.findUnique({
     where: { id: invoiceId },
-    include: { items: true, vendor: true },
+    include: { items: true, customer: true },
   });
 
   if (!invoice || !business) {
