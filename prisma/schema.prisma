@@ -103,18 +103,27 @@ model Invoice {
 }
 
 model InvoiceItem {
-  id           String          @id @default(cuid())
-  description  String
-  quantity     Int
-  unitPrice    Int
-  discount     Int
-  tax          Int
-  chartAccountId  String
-  subtotal     Int
-  total        Int
+  id            String @id @default(cuid())
+  description   String
+  quantity      Int
+  unitPrice     Int
+  tax           Int
+  chartAccountId String
+  subtotal      Int
+  total         Int
   
-  invoiceId    String
+  invoiceId     String
   invoice       Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  discounts     InvoiceItemDiscount[]
+}
+
+model InvoiceItemDiscount {
+  id            String @id @default(cuid())
+  num           Int
+  value         Int
+  invoiceItemId String
+  invoiceItem   InvoiceItem @relation(fields: [invoiceItemId], references: [id])
 }
 
 model Payment {

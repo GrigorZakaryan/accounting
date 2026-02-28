@@ -1,5 +1,5 @@
 import {
-  InvoiceItem,
+  InvoiceItemDiscount,
   InvoiceStatus,
   InvoiceType,
   Party,
@@ -14,6 +14,20 @@ export interface Payment {
   invoiceId: string;
   invoice?: Invoice;
   // Remove notes and invoice if they're not needed
+}
+
+export interface InvoiceItem {
+  id: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  tax: number;
+  chartAccountId: string;
+  subtotal: number;
+  total: number;
+  invoiceId: string;
+
+  discounts: InvoiceItemDiscount[];
 }
 
 export interface Invoice {
@@ -34,5 +48,5 @@ export interface Invoice {
   vendor?: Party | null;
   payments?: Payment[] | null;
 
-  items?: InvoiceItem[];
+  items: InvoiceItem[];
 }

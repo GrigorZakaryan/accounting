@@ -16,7 +16,11 @@ import { format } from "date-fns";
 import { MoreHorizontal, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { formatCurrency } from "@/utils/currency";
+import {
+  convertDecimalToInt,
+  convertIntToDecimal,
+  formatCurrency,
+} from "@/utils/currency";
 
 export interface JournalEntriesProps {
   id: string;
@@ -102,7 +106,7 @@ export const JournalEntryContent = ({
                     <TableCell className="text-center">
                       {
                         line.journalLines.filter(
-                          (line) => line.type === "DEBIT"
+                          (line) => line.type === "DEBIT",
                         ).length
                       }
                     </TableCell>
@@ -110,7 +114,7 @@ export const JournalEntryContent = ({
                     <TableCell className="text-center">
                       {
                         line.journalLines.filter(
-                          (line) => line.type === "CREDIT"
+                          (line) => line.type === "CREDIT",
                         ).length
                       }
                     </TableCell>

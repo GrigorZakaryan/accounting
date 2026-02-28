@@ -7,7 +7,11 @@ import { convertIntToDecimal } from "@/utils/currency";
 export default async function Payment() {
   const invoices = await db.invoice.findMany({
     where: { type: "PURCHASE" },
-    include: { vendor: true, payments: true },
+    include: {
+      vendor: true,
+      payments: true,
+      items: { include: { discounts: true } },
+    },
     orderBy: { number: "asc" },
   });
 

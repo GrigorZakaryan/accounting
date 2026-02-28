@@ -1,8 +1,9 @@
 import { db } from "@/lib/db";
-import { Invoice, InvoiceItem, Payment } from "@/lib/generated/prisma";
+import { Invoice, Payment } from "@/lib/generated/prisma";
 import { fullPurchaseInvoiceSchema } from "@/schemas/invoice-schema";
 import { NextRequest, NextResponse } from "next/server";
 import { convertDecimalToInt } from "@/utils/currency";
+import { InvoiceItem } from "@/types/purchases";
 
 export const POST = async (req: NextRequest) => {
   const body = await req.json();
@@ -52,18 +53,21 @@ export const POST = async (req: NextRequest) => {
       total: convertDecimalToInt(Number(invoice.total)),
       subtotal: convertDecimalToInt(Number(invoice.subtotal)),
       items: {
-        createMany: {
-          data: items.map((item) => ({
-            description: item.description,
-            total: convertDecimalToInt(item.total),
-            subtotal: convertDecimalToInt(Number(item.subtotal)),
-            quantity: Number(item.quantity),
-            discount: Number(item.discount),
-            tax: Number(item.tax),
-            chartAccountId: item.chartAccountId,
-            unitPrice: convertDecimalToInt(Number(item.unitPrice)),
-          })),
-        },
+        create: items.map((item) => ({
+          description: item.description,
+          total: convertDecimalToInt(item.total),
+          subtotal: convertDecimalToInt(Number(item.subtotal)),
+          quantity: Number(item.quantity),
+          discounts: {
+            create: item.discounts?.map((d) => ({
+              ...d,
+              value: Number(d.value),
+            })),
+          },
+          tax: Number(item.tax),
+          chartAccountId: item.chartAccountId,
+          unitPrice: convertDecimalToInt(Number(item.unitPrice)),
+        })),
       },
       payments: { createMany: { data: payments } },
     },

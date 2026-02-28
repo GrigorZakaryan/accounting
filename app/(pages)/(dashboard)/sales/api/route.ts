@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
-import { Invoice, InvoiceItem, Party, Payment } from "@/lib/generated/prisma";
+import { Invoice, Party, Payment } from "@/lib/generated/prisma";
 import { fullSaleInvoiceSchema } from "@/schemas/invoice-schema";
+import { InvoiceItem } from "@/types/purchases";
 import { convertDecimalToInt } from "@/utils/currency";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -50,19 +51,23 @@ export const POST = async (req: NextRequest) => {
       total: convertDecimalToInt(Number(invoice.total)),
       subtotal: convertDecimalToInt(Number(invoice.subtotal)),
       items: {
-        createMany: {
-          data: items.map((item) => ({
-            description: item.description,
-            total: convertDecimalToInt(item.total),
-            subtotal: convertDecimalToInt(item.subtotal),
-            quantity: Number(item.quantity),
-            discount: Number(item.discount),
-            tax: Number(item.tax),
-            chartAccountId: item.chartAccountId,
-            unitPrice: convertDecimalToInt(item.unitPrice),
-          })),
-        },
+        create: items.map((item) => ({
+          description: item.description,
+          total: convertDecimalToInt(item.total),
+          subtotal: convertDecimalToInt(item.subtotal),
+          quantity: Number(item.quantity),
+          discounts: {
+            create: item.discounts.map((d) => ({
+              ...d,
+              value: Number(d.value),
+            })),
+          },
+          tax: Number(item.tax),
+          chartAccountId: item.chartAccountId,
+          unitPrice: convertDecimalToInt(item.unitPrice),
+        })),
       },
+
       payments: { createMany: { data: payments } },
     },
   });
@@ -80,7 +85,7 @@ export const POST = async (req: NextRequest) => {
   const accounts = items.map((item) => ({
     chartAccountId: item.chartAccountId,
     type: "CREDIT" as const,
-    amount: Number(item.subtotal),
+    amount: convertDecimalToInt(Number(item.subtotal)),
     description: item.description,
   }));
 

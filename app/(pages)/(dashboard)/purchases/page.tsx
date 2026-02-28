@@ -7,7 +7,11 @@ import { Header } from "../../components/header";
 export default async function PurchasesPage() {
   const invoices = await db.invoice.findMany({
     where: { type: "PURCHASE" },
-    include: { vendor: true, payments: true },
+    include: {
+      vendor: true,
+      payments: true,
+      items: { include: { discounts: true } },
+    },
     orderBy: { issueDate: "asc" },
   });
 

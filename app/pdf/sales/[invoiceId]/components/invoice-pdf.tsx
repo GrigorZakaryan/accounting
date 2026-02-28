@@ -1,10 +1,12 @@
+import { Business } from "@/lib/generated/prisma";
+import { Invoice } from "@/types/purchases";
 import { convertIntToDecimal, formatCurrency } from "@/utils/currency";
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { format } from "date-fns";
 
 type Props = {
-  invoice: any;
-  business: any;
+  invoice: Invoice;
+  business: Business;
   subtotal: number;
   taxedAmount: number;
   total: number;
@@ -116,7 +118,7 @@ export const InvoicePDFTemplate = ({
           <Text>
             {business.address}, {business.country}
           </Text>
-          <Text>{business.vatNumber ?? business.fiscalId}</Text>
+          <Text>{business.vatNumber}</Text>
         </View>
 
         <View style={[styles.column, { textAlign: "right" }]}>
@@ -179,7 +181,9 @@ export const InvoicePDFTemplate = ({
               {formatCurrency(convertIntToDecimal(item.unitPrice))}
             </Text>
             <Text style={[styles.tableCell, styles.colDiscount]}>
-              {item.discount}%
+              {item.discounts.map((d: any) =>
+                d.value === 0 ? null : `${d.value}% `,
+              )}
             </Text>
             <Text style={[styles.tableCell, styles.colTax]}>{item.tax}%</Text>
             <Text style={[styles.tableCell, styles.colAmount, styles.right]}>

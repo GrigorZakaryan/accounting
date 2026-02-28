@@ -56,12 +56,17 @@ import { CommandList } from "cmdk";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+interface DiscountProps {
+  num: number;
+  value: number;
+}
+
 interface InvoiceItem {
   id: string;
   description: string;
   quantity: number;
   unitPrice: number;
-  discount: number;
+  discounts: DiscountProps[];
   tax: "22" | "10" | "5" | "4" | "0";
   chartAccountId: string;
   subtotal: number;
@@ -91,7 +96,12 @@ export const InvoiceForm = ({
       description: "",
       quantity: 1,
       unitPrice: 0,
-      discount: 0,
+      discounts: [
+        { num: 1, value: 0 },
+        { num: 2, value: 0 },
+        { num: 3, value: 0 },
+        { num: 4, value: 0 },
+      ],
       tax: "22",
       chartAccountId: "",
       subtotal: 0,
@@ -133,7 +143,12 @@ export const InvoiceForm = ({
       description: "",
       quantity: 1,
       unitPrice: 0,
-      discount: 0,
+      discounts: [
+        { num: 1, value: 0 },
+        { num: 2, value: 0 },
+        { num: 3, value: 0 },
+        { num: 4, value: 0 },
+      ],
       tax: "22",
       chartAccountId: "",
       subtotal: 0,
@@ -153,34 +168,48 @@ export const InvoiceForm = ({
     id,
     field,
     value,
+    discountNum,
   }: {
     id: string;
     field: keyof InvoiceItem;
     value: string | number;
+    discountNum?: number;
   }) => {
-    setInvoiceItems(
-      invoiceItems.map((item) => {
-        if (item.id === id) {
-          const updated = { ...item, [field]: value };
-          if (
-            field === "quantity" ||
-            field === "unitPrice" ||
-            field === "discount" ||
-            field === "tax"
-          ) {
-            updated.subtotal =
-              Number(updated.quantity) *
-              Number(
-                updated.unitPrice -
-                  updated.unitPrice * (updated.discount / 100),
-              );
+    setInvoiceItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== id) return item;
 
-            updated.total =
-              updated.subtotal + (updated.subtotal * Number(updated.tax)) / 100;
-          }
-          return updated;
+        let updated: InvoiceItem = { ...item };
+
+        // Handle discount update correctly
+        if (field === "discounts") {
+          updated.discounts = updated.discounts.map((d) =>
+            d.num === discountNum ? { ...d, value: Number(value) } : d,
+          );
+        } else {
+          updated = { ...updated, [field]: value };
         }
-        return item;
+
+        // Recalculate amounts
+        const baseAmount = Number(updated.quantity) * Number(updated.unitPrice);
+
+        let discountedAmount = baseAmount;
+
+        for (let i = 0; i < updated.discounts.length; i++) {
+          const percent = updated.discounts[i].value;
+          discountedAmount =
+            discountedAmount - (discountedAmount * percent) / 100;
+        }
+
+        updated.subtotal = Number(discountedAmount.toFixed(2));
+        updated.total = Number(
+          (
+            discountedAmount +
+            (discountedAmount * Number(updated.tax)) / 100
+          ).toFixed(2),
+        );
+
+        return updated;
       }),
     );
   };
@@ -505,23 +534,29 @@ export const InvoiceForm = ({
                           >
                             Discount %
                           </label>
-                          <Input
-                            disabled={loading}
-                            onChange={(e) =>
-                              updateItem({
-                                id: item.id,
-                                field: "discount",
-                                value: Number(e.target.value),
-                              })
-                            }
-                            max={100}
-                            min={0}
-                            value={item.discount}
-                            type="number"
-                            className="bg-white"
-                            id={`${idx}-item-discount`}
-                            placeholder="5"
-                          />
+                          <div className="flex items-center gap-1">
+                            {item.discounts.map((discount, discountIdx) => (
+                              <Input
+                                key={discountIdx}
+                                disabled={loading}
+                                onChange={(e) =>
+                                  updateItem({
+                                    id: item.id,
+                                    field: `discounts`,
+                                    value: Number(e.target.value),
+                                    discountNum: discountIdx + 1,
+                                  })
+                                }
+                                max={100}
+                                min={0}
+                                value={discount.value}
+                                type="number"
+                                className="bg-white"
+                                id={`${idx}-item-discount`}
+                                placeholder="5"
+                              />
+                            ))}
+                          </div>
                         </div>
                         <div className="flex flex-col items-start gap-2 min-w-30">
                           <label

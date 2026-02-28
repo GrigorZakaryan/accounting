@@ -40,7 +40,7 @@ export const RecentTransactions = ({
                   <div className="w-full border-t py-3 hover:bg-muted px-2 cursor-pointer duration-200">
                     <div className="grid grid-cols-2">
                       <span className="text-sm">
-                        {format(entry.date, "dd MMM yyyy - HH:mm")}
+                        {format(entry.date, "dd MMM yyyy")}
                       </span>
                       <span className="text-sm font-medium">
                         {entry.description ? entry.description : "-"}
