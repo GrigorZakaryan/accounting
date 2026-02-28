@@ -55,6 +55,7 @@ import {
 import { CommandList } from "cmdk";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { toUTCDateOnly } from "@/utils/time";
 
 interface DiscountProps {
   num: number;
@@ -222,6 +223,8 @@ export const InvoiceForm = ({
       await axios.post("/purchases/api", {
         invoice: {
           ...invoiceData,
+          issueDate: toUTCDateOnly(invoiceData.issueDate),
+          dueDate: toUTCDateOnly(invoiceData?.dueDate),
           businessId: "123",
           subtotal: calculateSubtotal(),
           total: calculateTotal(),

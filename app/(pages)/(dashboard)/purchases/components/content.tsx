@@ -23,6 +23,7 @@ import {
   Receipt,
   ReceiptText,
   Trash,
+  Trash2Icon,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -37,6 +38,19 @@ import {
 import axios from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Spinner } from "@/components/ui/spinner";
 
 export const PurchasesContent = ({
   invoices,
@@ -50,42 +64,23 @@ export const PurchasesContent = ({
   const [tab, setTab] = useState<"invoices" | "suppliers" | "payments">(
     "invoices",
   );
+  const [loading, setLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
   useEffect(() => setIsClient(true), []);
 
   const router = useRouter();
 
-  const onDownloadPDF = async (id: string) => {
+  const onDelete = async (id: string) => {
     try {
-      toast.message("Generating PDF...");
-
-      const response = await axios.post(
-        "/purchases/pdf/api",
-        { id },
-        {
-          responseType: "blob", // VERY IMPORTANT
-        },
-      );
-
-      const blob = new Blob([response.data], {
-        type: "application/pdf",
-      });
-
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "invoice.pdf";
-      document.body.appendChild(a);
-      a.click();
-
-      a.remove();
-      window.URL.revokeObjectURL(url);
-
-      toast.success("PDF downloaded");
+      setLoading(true);
+      await axios.delete(`/purchases/api/${id}`);
+      toast.success("Invoice Deleted Succesfully!");
+      router.refresh();
     } catch (err) {
       console.error(err);
       toast.error("Something went wrong!");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -189,30 +184,73 @@ export const PurchasesContent = ({
                       {isClient ? formatCurrency(invoice.total) : "-"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger>
-                          <MoreHorizontal className="w-4 h-4 cursor-pointer" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align={"end"}>
-                          <DropdownMenuGroup>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                window.open(
-                                  `/pdf/purchases/${invoice.id}`,
-                                  "_blank",
-                                  "noopener,noreferrer",
-                                )
-                              }
+                      <AlertDialog>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger>
+                            <MoreHorizontal className="w-4 h-4 cursor-pointer" />
+                          </DropdownMenuTrigger>
+
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuGroup>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  window.open(
+                                    `/pdf/purchases/${invoice.id}`,
+                                    "_blank",
+                                    "noopener,noreferrer",
+                                  )
+                                }
+                              >
+                                <Download />
+                                Download PDF
+                              </DropdownMenuItem>
+
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onSelect={(e) => e.preventDefault()}
+                                >
+                                  <Trash />
+                                  Delete
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                            </DropdownMenuGroup>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <AlertDialogContent size="sm">
+                          <AlertDialogHeader>
+                            <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                              <Trash2Icon />
+                            </AlertDialogMedia>
+                            <AlertDialogTitle>
+                              Delete INV-{invoice.number}?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete this invoice and all
+                              realted information. Journal Entries, Payments and
+                              other related info will be deleted as well.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel
+                              disabled={loading}
+                              variant="outline"
+                              className="cursor-pointer"
                             >
-                              <Download />
-                              Download PDF
-                            </DropdownMenuItem>
-                            <DropdownMenuItem variant="destructive">
-                              <Trash /> Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                              Cancel
+                            </AlertDialogCancel>
+                            <Button
+                              disabled={loading}
+                              onClick={() => onDelete(invoice.id)}
+                              variant="destructive"
+                              className="cursor-pointer"
+                            >
+                              {loading ? <Spinner /> : "Delete"}
+                            </Button>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))}

@@ -123,7 +123,7 @@ model InvoiceItemDiscount {
   num           Int
   value         Int
   invoiceItemId String
-  invoiceItem   InvoiceItem @relation(fields: [invoiceItemId], references: [id])
+  invoiceItem   InvoiceItem @relation(fields: [invoiceItemId], references: [id], onDelete: Cascade)
 }
 
 model Payment {

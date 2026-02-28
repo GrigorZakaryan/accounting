@@ -15,7 +15,13 @@ import { formatCurrency } from "@/utils/currency";
 import { Party } from "@/lib/generated/prisma";
 import { Invoice, Payment } from "@/types/purchases";
 import { format } from "date-fns";
-import { Download, MoreHorizontal, Plus, Trash } from "lucide-react";
+import {
+  Download,
+  MoreHorizontal,
+  Plus,
+  Trash,
+  Trash2Icon,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -25,6 +31,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Spinner } from "@/components/ui/spinner";
+import { useRouter } from "next/navigation";
+import axios from "axios";
+import { toast } from "sonner";
 
 export const SalesContent = ({
   invoices,
@@ -38,8 +59,25 @@ export const SalesContent = ({
   const [tab, setTab] = useState<"invoices" | "customers" | "payments">(
     "invoices",
   );
+  const [loading, setLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
   useEffect(() => setIsClient(true), []);
+
+  const router = useRouter();
+
+  const onDelete = async (id: string) => {
+    try {
+      setLoading(true);
+      await axios.delete(`/purchases/api/${id}`);
+      toast.success("Invoice Deleted Succesfully!");
+      router.refresh();
+    } catch (err) {
+      console.error(err);
+      toast.error("Something went wrong!");
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <>
       <div className="w-full border-b mt-10">
@@ -140,30 +178,73 @@ export const SalesContent = ({
                       {isClient ? formatCurrency(Number(invoice.total)) : "-"}
                     </TableCell>
                     <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger>
-                          <MoreHorizontal className="w-4 h-4 cursor-pointer" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align={"end"}>
-                          <DropdownMenuGroup>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                window.open(
-                                  `/pdf/sales/${invoice.id}`,
-                                  "_blank",
-                                  "noopener,noreferrer",
-                                )
-                              }
+                      <AlertDialog>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger>
+                            <MoreHorizontal className="w-4 h-4 cursor-pointer" />
+                          </DropdownMenuTrigger>
+
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuGroup>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  window.open(
+                                    `/pdf/sales/${invoice.id}`,
+                                    "_blank",
+                                    "noopener,noreferrer",
+                                  )
+                                }
+                              >
+                                <Download />
+                                Download PDF
+                              </DropdownMenuItem>
+
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onSelect={(e) => e.preventDefault()}
+                                >
+                                  <Trash />
+                                  Delete
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                            </DropdownMenuGroup>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <AlertDialogContent size="sm">
+                          <AlertDialogHeader>
+                            <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
+                              <Trash2Icon />
+                            </AlertDialogMedia>
+                            <AlertDialogTitle>
+                              Delete INV-{invoice.number}?
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete this invoice and all
+                              realted information. Journal Entries, Payments and
+                              other related info will be deleted as well.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel
+                              disabled={loading}
+                              variant="outline"
+                              className="cursor-pointer"
                             >
-                              <Download />
-                              Download PDF
-                            </DropdownMenuItem>
-                            <DropdownMenuItem variant="destructive">
-                              <Trash /> Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuGroup>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                              Cancel
+                            </AlertDialogCancel>
+                            <Button
+                              disabled={loading}
+                              onClick={() => onDelete(invoice.id)}
+                              variant="destructive"
+                              className="cursor-pointer"
+                            >
+                              {loading ? <Spinner /> : "Delete"}
+                            </Button>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))}
