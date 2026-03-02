@@ -65,8 +65,8 @@ interface DiscountProps {
 interface InvoiceItem {
   id: string;
   description: string;
-  quantity: number;
-  unitPrice: number;
+  quantity: number | "";
+  unitPrice: number | "";
   discounts: DiscountProps[];
   tax: "22" | "10" | "5" | "4" | "0";
   chartAccountId: string;
@@ -77,9 +77,11 @@ interface InvoiceItem {
 export const InvoiceForm = ({
   suppliers,
   CoAs,
+  CoAId,
 }: {
   suppliers: Party[];
   CoAs: ChartAccount[];
+  CoAId: string;
 }) => {
   const [loading, setLoading] = useState(false);
   const [issueDateOpen, issueDateSetOpen] = useState(false);
@@ -104,7 +106,7 @@ export const InvoiceForm = ({
         { num: 4, value: 0 },
       ],
       tax: "22",
-      chartAccountId: "",
+      chartAccountId: CoAId,
       subtotal: 0,
       total: 0,
     },
@@ -151,7 +153,7 @@ export const InvoiceForm = ({
         { num: 4, value: 0 },
       ],
       tax: "22",
-      chartAccountId: "",
+      chartAccountId: CoAId,
       subtotal: 0,
       total: 0,
     };
@@ -406,12 +408,6 @@ export const InvoiceForm = ({
                             >
                               EUR
                             </SelectItem>
-                            <SelectItem
-                              className="flex items-center justify-center cursor-pointer"
-                              value="USD"
-                            >
-                              USD
-                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -492,18 +488,18 @@ export const InvoiceForm = ({
                           <Input
                             disabled={loading}
                             min={1}
-                            onChange={(e) =>
+                            onChange={(e) => {
+                              const raw = e.target.value;
                               updateItem({
                                 id: item.id,
                                 field: "quantity",
-                                value: Number(e.target.value),
-                              })
-                            }
+                                value: raw === "" ? "" : Number(e.target.value),
+                              });
+                            }}
                             value={item.quantity}
                             type="number"
                             className="bg-white"
                             id={`${idx}-item-quantity`}
-                            placeholder="1"
                           />
                         </div>
                         <div className="flex flex-col items-start gap-2 min-w-30">
@@ -516,19 +512,19 @@ export const InvoiceForm = ({
                           <Input
                             step={"0.01"}
                             disabled={loading}
-                            onChange={(e) =>
+                            onChange={(e) => {
+                              const raw = e.target.value;
                               updateItem({
                                 id: item.id,
                                 field: "unitPrice",
-                                value: Number(e.target.value),
-                              })
-                            }
+                                value: raw === "" ? "" : Number(e.target.value),
+                              });
+                            }}
                             min={1}
                             value={item.unitPrice}
                             type="number"
                             className="bg-white"
                             id={`${idx}-item-unitprice`}
-                            placeholder="0.00"
                           />
                         </div>
                         <div className="flex flex-col items-start gap-2 min-w-30">
@@ -543,21 +539,20 @@ export const InvoiceForm = ({
                               <Input
                                 key={discountIdx}
                                 disabled={loading}
-                                onChange={(e) =>
+                                onChange={(e) => {
                                   updateItem({
                                     id: item.id,
                                     field: `discounts`,
                                     value: Number(e.target.value),
                                     discountNum: discountIdx + 1,
-                                  })
-                                }
+                                  });
+                                }}
                                 max={100}
                                 min={0}
                                 value={discount.value}
                                 type="number"
                                 className="bg-white"
                                 id={`${idx}-item-discount`}
-                                placeholder="5"
                               />
                             ))}
                           </div>

@@ -6,6 +6,9 @@ import { db } from "@/lib/db";
 export default async function PurchaseInvoicePage() {
   const suppliers = await db.party.findMany({ where: { type: "VENDOR" } });
   const CoAs = await db.chartAccount.findMany();
+
+  const CoAId = await db.chartAccount.findUnique({ where: { code: "30.01" } });
+
   return (
     <div className="w-full h-full bg-muted overflow-y-scroll">
       <header className="w-full h-16 bg-white border-b fixed">
@@ -45,7 +48,11 @@ export default async function PurchaseInvoicePage() {
         </div>
       </div>
       <div className="px-5 pb-10">
-        <InvoiceForm suppliers={suppliers} CoAs={CoAs} />
+        <InvoiceForm
+          suppliers={suppliers}
+          CoAs={CoAs}
+          CoAId={CoAId?.id ?? ""}
+        />
       </div>
     </div>
   );
