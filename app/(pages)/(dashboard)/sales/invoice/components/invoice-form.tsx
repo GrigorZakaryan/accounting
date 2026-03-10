@@ -3,6 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Form,
   FormControl,
   FormField,
@@ -11,6 +20,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Popover,
   PopoverContent,
@@ -37,7 +56,7 @@ import {
   Save,
   Trash,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
@@ -56,6 +75,19 @@ import { CommandList } from "cmdk";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { toUTCDateOnly } from "@/utils/time";
+import { Label } from "@/components/ui/label";
+import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxValue,
+  useComboboxAnchor,
+} from "@/components/ui/combobox";
 
 interface DiscountProps {
   num: number;
@@ -88,6 +120,11 @@ export const InvoiceForm = ({
   const [dueDateOpen, dueDateSetOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
+
+  const [allocationTargets, setAllocationTargets] = useState<InvoiceItem[]>([]);
+  const [allocationAmount, setAllocationAmount] = useState<number | "">(0);
+  const [allocationDescription, setAllocationDescription] = useState("");
+  const anchor = useComboboxAnchor();
 
   useEffect(() => {
     setMounted(true);
@@ -215,6 +252,46 @@ export const InvoiceForm = ({
         return updated;
       }),
     );
+  };
+
+  const addAllocatedItems = () => {
+    if (allocationTargets.length === 0) return;
+
+    const allocTotal = allocationTargets.reduce(
+      (acc, curr) => acc + curr.subtotal,
+      0,
+    );
+
+    if (allocTotal === 0) return;
+
+    const coeff = Number(allocationAmount) / allocTotal;
+
+    allocationTargets.forEach((target) => {
+      const amount = target.subtotal * coeff;
+
+      const newItem: InvoiceItem = {
+        id: crypto.randomUUID(),
+        description: allocationDescription,
+        quantity: 1,
+        unitPrice: Number(amount.toFixed(2)),
+        discounts: [
+          { num: 1, value: 0 },
+          { num: 2, value: 0 },
+          { num: 3, value: 0 },
+          { num: 4, value: 0 },
+        ],
+        tax: target.tax,
+        chartAccountId: CoAId,
+        subtotal: amount,
+        total: amount + (amount * Number(target.tax)) / 100,
+      };
+
+      setInvoiceItems((prev) => [...prev, newItem]);
+    });
+    setAllocationAmount(0);
+    setAllocationDescription("");
+    setAllocationTargets([]);
+    toast.success("Allocation added!");
   };
 
   const onSubmit = async (
@@ -436,15 +513,125 @@ export const InvoiceForm = ({
           </Form>
         </CardContent>
       </Card>
-
       {/* INVOICE ITEMS */}
-
       <Card>
         <CardHeader className="flex items-center justify-between w-full">
           <CardTitle>Line Items</CardTitle>
-          <Button disabled={loading} onClick={() => addItem()}>
-            <Plus /> Add Item
-          </Button>
+          <div className="flex items-center gap-2">
+            <Sheet>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button disabled={loading}>
+                    <Plus /> Add Item
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem
+                      className="cursor-pointer"
+                      onClick={() => addItem()}
+                    >
+                      <Plus /> Item
+                    </DropdownMenuItem>
+                    <SheetTrigger className="cursor-pointer" asChild>
+                      <DropdownMenuItem className="cursor-pointer">
+                        <Plus /> Allocation
+                      </DropdownMenuItem>
+                    </SheetTrigger>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <SheetContent className="min-w-[40vw] rounded-2xl max-h-[97dvh] m-auto mr-5">
+                <SheetHeader>
+                  <SheetTitle>Add Allocated Items</SheetTitle>
+                  <SheetDescription>
+                    Here you can automatically add acceossory allocation items.
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="flex flex-col gap-5 px-5">
+                  <div className="flex flex-col items-start gap-2 max-w-full">
+                    <Label>Description</Label>
+                    <Textarea
+                      onChange={(e) => setAllocationDescription(e.target.value)}
+                      value={allocationDescription}
+                      placeholder="Description"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between w-full gap-3">
+                    <div className="flex flex-col items-start gap-2 w-full">
+                      <Label>Amount</Label>
+                      <Input
+                        value={allocationAmount}
+                        onChange={(e) =>
+                          setAllocationAmount(
+                            e.target.value === "" ? "" : Number(e.target.value),
+                          )
+                        }
+                        type="number"
+                        step={"0.01"}
+                      />
+                    </div>
+                    <div className="flex flex-col items-start gap-2 w-full">
+                      <Label>Allocation Targets</Label>
+                      <Combobox
+                        multiple
+                        autoHighlight
+                        items={invoiceItems}
+                        value={allocationTargets}
+                        onValueChange={setAllocationTargets}
+                        defaultValue={[invoiceItems[0]]}
+                      >
+                        <ComboboxChips ref={anchor} className="w-full max-w-xs">
+                          <ComboboxValue>
+                            {(values) => (
+                              <React.Fragment>
+                                {values.map((value: InvoiceItem) => (
+                                  <ComboboxChip key={value.id}>
+                                    {value.description}
+                                  </ComboboxChip>
+                                ))}
+                                <ComboboxChipsInput />
+                              </React.Fragment>
+                            )}
+                          </ComboboxValue>
+                        </ComboboxChips>
+                        <ComboboxContent
+                          anchor={anchor}
+                          className={"pointer-events-auto"}
+                        >
+                          <ComboboxEmpty>No items found.</ComboboxEmpty>
+                          <ComboboxList>
+                            {(item: InvoiceItem) => (
+                              <ComboboxItem key={item.id} value={item}>
+                                {item.description}
+                              </ComboboxItem>
+                            )}
+                          </ComboboxList>
+                        </ComboboxContent>
+                      </Combobox>
+                    </div>
+                  </div>
+                </div>
+                <SheetFooter>
+                  <SheetClose asChild>
+                    <Button
+                      onClick={() => addAllocatedItems()}
+                      className="cursor-pointer"
+                      type="submit"
+                    >
+                      Save changes
+                    </Button>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Button className="cursor-pointer" variant="outline">
+                      Close
+                    </Button>
+                  </SheetClose>
+                </SheetFooter>
+              </SheetContent>
+            </Sheet>
+          </div>
         </CardHeader>
         <CardContent className="flex flex-col items-end gap-10">
           <div className="w-full flex flex-col gap-5">

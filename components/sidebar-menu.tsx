@@ -26,11 +26,6 @@ const menu_platform = [
     icon: <Tag className="w-5 h-5 text-primary" />,
     link: "/sales",
   },
-  {
-    name: "Products",
-    icon: <Package className="w-5 h-5 text-primary" />,
-    link: "/products",
-  },
 ];
 
 const menu_accounting = [
@@ -43,11 +38,6 @@ const menu_accounting = [
     name: "CoAs",
     icon: <ChartArea className="w-5 h-5 text-primary" />,
     link: "/chart-accounts",
-  },
-  {
-    name: "Balance Sheet",
-    icon: <Sheet className="w-5 h-5 text-primary" />,
-    link: "/balance-sheet",
   },
 ];
 
