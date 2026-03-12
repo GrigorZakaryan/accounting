@@ -21,10 +21,18 @@ export default async function Page() {
           <div className="flex items-center justify-between p-1 w-full max-w-[700px] border-[1px] border-green-700 bg-green-100 rounded-full">
             <Image width={35} height={35} alt="Logo" src={Logo.src} />
             <ul className="hidden lg:flex items-center gap-5">
-              <li className="cursor-pointer">About</li>
-              <li className="cursor-pointer">Blog</li>
-              <li className="cursor-pointer">Pricing</li>
-              <li className="cursor-pointer">Features</li>
+              <Link href={"#about"}>
+                <li className="cursor-pointer">About</li>
+              </Link>
+              <Link href={"https://zakaweb.com"}>
+                <li className="cursor-pointer">Blog</li>
+              </Link>
+              <Link href={"#features"}>
+                <li className="cursor-pointer">Features</li>
+              </Link>
+              <Link href={"#contacts"}>
+                <li className="cursor-pointer">Contacts</li>
+              </Link>
             </ul>
             <Link href={"/overview"}>
               <button className="bg-gradient-to-br from-[#00B21B] via-[#006610] hover:via-[#004C0B] to-[#00600E] w-[100px] py-2 text-white rounded-full text-sm font-medium duration-200 cursor-pointer">
@@ -38,7 +46,7 @@ export default async function Page() {
         <div className="w-2 h-2 bg-green-800 absolute top-[50%] translate-y-[-50%] left-[16px] lg:left-[96px]" />
         <div className="w-2 h-2 bg-green-800 absolute top-[50%] translate-y-[-50%] right-[16px] lg:right-[96px]" />
       </Separator>
-      <section className="px-[20px] lg:px-[100px] h-full">
+      <section id="about" className="px-[20px] lg:px-[100px] h-full">
         <div className="flex justify-center border-x border-green-500/20">
           <div className="flex flex-col items-center gap-5 mt-[100px] w-full max-w-[330px] lg:max-w-[700px]">
             <h1 className="text-5xl lg:text-6xl font-medium text-center bg-clip-text bg-gradient-to-br from-[#039F19] via-[#013909] to-[#039F19] text-transparent">
@@ -46,14 +54,16 @@ export default async function Page() {
               your business
             </h1>
             <p className="text-sm lg:text-md text-center">
-              Provide a short overview of your platform’s purpose. Highlight how
-              your financial tools are designed to help businesses or
-              individuals optimize their financial decisions.
+              The best platoform for accounting, generate invoices for sales and
+              purchases of goods anad services, record and keep track of all
+              payments with ease.
             </p>
             <div className="flex items-center gap-5 mt-10 relative z-10">
-              <button className="bg-white w-[150px] py-2.5 text-green-900 rounded-full font-medium cursor-pointer opacity-80 hover:opacity-100 relative">
-                Join Waitlist
-              </button>
+              <Link href={"https://zakaweb.com"}>
+                <button className="bg-white w-[150px] py-2.5 text-green-900 rounded-full font-medium cursor-pointer opacity-80 hover:opacity-100">
+                  Join Waitlist
+                </button>
+              </Link>
               <Link href={"/overview"}>
                 <button className="bg-gradient-to-br from-[#00B21B] via-[#006610] hover:via-[#004C0B] to-[#00600E] w-[150px] py-2.5 text-white rounded-full font-medium duration-200 cursor-pointer">
                   Try Demo
@@ -93,7 +103,7 @@ export default async function Page() {
         <div className="w-2 h-2 bg-green-800 absolute top-[50%] translate-y-[-50%] left-[16px] lg:left-[96px]" />
         <div className="w-2 h-2 bg-green-800 absolute top-[50%] translate-y-[-50%] right-[16px] lg:right-[96px]" />
       </Separator>
-      <section className="px-[20px] lg:px-[100px]">
+      <section id="features" className="px-[20px] lg:px-[100px]">
         <div className="flex justify-center border-x border-green-500/20">
           <div className="flex flex-col items-center gap-5 mt-[100px] w-full max-w-[350px] lg:max-w-[500px]">
             <h1 className="text-4xl lg:text-5xl font-medium text-center bg-clip-text bg-gradient-to-br from-[#039F19] via-[#013909] to-[#039F19] text-transparent">
@@ -101,9 +111,9 @@ export default async function Page() {
               your business
             </h1>
             <p className="text-xs lg:text-sm text-center">
-              Provide a short overview of your platform’s purpose. Highlight how
-              your financial tools are designed to help businesses or
-              individuals.
+              The best platoform for accounting, generate invoices for sales and
+              purchases of goods anad services, record and keep track of all
+              payments with ease.
             </p>
           </div>
         </div>
@@ -118,11 +128,11 @@ export default async function Page() {
             />
             <div className="mt-10">
               <h1 className="text-xl font-semibold text-green-900">
-                Intuitive drag & drop editor
+                Chart Accounts
               </h1>
               <p className="text-sm font-medium text-green-900 mt-1">
-                Create stunning designs effortlessly with a user-friendly
-                interface.
+                No need to manually calculate CoAs, the platform will it do it
+                for you.
               </p>
             </div>
           </div>
@@ -136,11 +146,10 @@ export default async function Page() {
             />
             <div className="mt-10">
               <h1 className="text-xl font-semibold text-green-900">
-                Intuitive drag & drop editor
+                Invoice Payments
               </h1>
               <p className="text-sm font-medium text-green-900 mt-1">
-                Create stunning designs effortlessly with a user-friendly
-                interface.
+                Record and keep track of your payments for all of your invoices.
               </p>
             </div>
           </div>
@@ -154,11 +163,10 @@ export default async function Page() {
             />
             <div className="mt-10">
               <h1 className="text-xl font-semibold text-green-900">
-                Intuitive drag & drop editor
+                Invoice Generation
               </h1>
               <p className="text-sm text-green-900 font-medium mt-1">
-                Create stunning designs effortlessly with a user-friendly
-                interface.
+                Generate & Record Invoices for Sales and Purchases with ease.
               </p>
             </div>
           </div>
@@ -182,15 +190,16 @@ export default async function Page() {
                     your business
                   </h1>
                   <p className="text-center lg:text-left text-xs lg:text-sm text-white mt-4 px-3 lg:px-0">
-                    Provide a short overview of your platform’s purpose.
-                    Highlight how your financial tools are designed to help
-                    businesses or individuals optimize their financial
-                    decisions.
+                    The best platoform for accounting, generate invoices for
+                    sales and purchases of goods anad services, record and keep
+                    track of all payments with ease.
                   </p>
                   <div className="flex items-center gap-5 mt-10">
-                    <button className="bg-white w-[150px] py-2.5 text-green-900 rounded-full font-medium cursor-pointer opacity-80 hover:opacity-100">
-                      Join Waitlist
-                    </button>
+                    <Link href={"https://zakaweb.com"}>
+                      <button className="bg-white w-[150px] py-2.5 text-green-900 rounded-full font-medium cursor-pointer opacity-80 hover:opacity-100">
+                        Join Waitlist
+                      </button>
+                    </Link>
                     <Link href={"/overview"}>
                       <button className="bg-gradient-to-br from-[#00B21B] via-[#006610] hover:via-[#004C0B] to-[#00600E] w-[150px] py-2.5 text-white rounded-full font-medium duration-200 cursor-pointer">
                         Try Demo
@@ -214,7 +223,10 @@ export default async function Page() {
         <div className="w-2 h-2 bg-green-800 absolute top-[50%] translate-y-[-50%] left-[16px] lg:left-[96px]" />
         <div className="w-2 h-2 bg-green-800 absolute top-[50%] translate-y-[-50%] right-[16px] lg:right-[96px]" />
       </Separator>
-      <footer className="flex flex-col px-[20px] lg:px-[100px] text-green-900">
+      <footer
+        id="contacts"
+        className="flex flex-col px-[20px] lg:px-[100px] text-green-900"
+      >
         <div className="grid grid-cols-2 lg:grid-cols-3 border-x border-green-500/20 p-10">
           <div className="w-full text-left">
             <h1 className="text-2xl font-medium">About</h1>
@@ -232,10 +244,9 @@ export default async function Page() {
           <div className="w-full text-right lg:text-center">
             <h1 className="text-2xl font-medium">Links</h1>
             <div className="flex flex-col gap-3 mt-5">
-              <Link href={"#"}>Home</Link>
-              <Link href={"#"}>Blog</Link>
-              <Link href={"#"}>Pricing</Link>
-              <Link href={"#"}>Features</Link>
+              <Link href={"#about"}>About</Link>
+              <Link href={"www.zakaweb.com"}>Blog</Link>
+              <Link href={"#features"}>Features</Link>
             </div>
           </div>
           <div className="w-full text-left lg:text-right">
